@@ -1,17 +1,32 @@
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
+import 'package:social_app/signin.dart';
+import 'package:social_app/wrapper.dart';
 
-class loginScreen extends StatefulWidget {
+class SignupScreen extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => loginScreenState();
+  State<StatefulWidget> createState() => SignupScreenState();
 }
 
-class loginScreenState extends State<loginScreen> {
+class SignupScreenState extends State<SignupScreen> {
   PageController pageController=PageController(initialPage: 0);
   
-  var firstname=TextEditingController();
-  var lastname=TextEditingController();
+  TextEditingController firstname=TextEditingController();
+  TextEditingController lastname=TextEditingController();
+  TextEditingController gmail=TextEditingController();
+  TextEditingController password=TextEditingController();
+
+
+
+  sigup()async{
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(email: gmail.text, password: password.text);
+    Get.offAll(wrapper());
+  }
+
+
   int currentpage=0;
   @override
   Widget build(BuildContext context) {
@@ -203,35 +218,48 @@ class loginScreenState extends State<loginScreen> {
                       },
 
                       child: Container(
-                        height: 70,
-                        width: 300,
-
+                        padding: EdgeInsets.all(5), // ye border ki "thickness" hai
                         decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Color(0xff4b5459)
+                          borderRadius: BorderRadius.circular(40),
+                          gradient: LinearGradient(
+                            colors: [Colors.green, Colors.blue],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                         ),
-                        child: Padding(
-                          padding: EdgeInsetsGeometry.all(5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              CircleAvatar(
-                                radius: 30,
-                                backgroundColor: Color(0xff4cde8d),
-                                child: Icon(Icons.person,color: Colors.black,),
-                              ),
-                              SizedBox(
-                                width: 15,
-                              ),
-                              Text('Get Start',style: TextStyle(color: Colors.white,fontSize: 20),),
-                              SizedBox(
-                                width: 60,
-                              ),
-                              Text('>>',style: TextStyle(color: Colors.white,fontSize: 25),),
 
 
-                            ],
 
+                        child: Container(
+                          height: 70,
+                          width: 300,
+
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(40),
+                              // color: Color(0xff4b5459)
+                              color: Colors.black87
+                          ),
+                          child: Padding(
+                            padding: EdgeInsetsGeometry.all(5),
+                            child: Center(
+                              child: ShaderMask(
+                                shaderCallback: (bounds) {
+                                  return const LinearGradient(
+                                    colors: [Colors.green, Colors.blue], //
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ).createShader(bounds);
+                                },
+                                child: const Text(
+                                  "Create Account",
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -247,7 +275,9 @@ class loginScreenState extends State<loginScreen> {
                           width: 5,
                         ),
                         GestureDetector(
-                          onTap: (){},
+                          onTap: (){
+                            Navigator.push(context,  MaterialPageRoute(builder: (context) => Signinscreen()),);
+                          },
                           child: Text('Sign In',style: TextStyle(color: Colors.white,fontSize: 15,fontWeight: FontWeight.w600),),
                         )
                       ],
@@ -309,6 +339,7 @@ class loginScreenState extends State<loginScreen> {
                     Container(
                       width: 300,
                       child: TextField(
+                        style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
@@ -338,6 +369,7 @@ class loginScreenState extends State<loginScreen> {
                     Container(
                       width: 300,
                       child: TextField(
+                        style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
@@ -365,45 +397,20 @@ class loginScreenState extends State<loginScreen> {
                         GestureDetector(
 
                           child: Container(
-                            padding: EdgeInsetsGeometry.all(5),
-                            width: 100,
-                            height: 60,
-                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(11),color: Color(0xff4cde8d)),
-                            child: Center(
-                              child:                  ShaderMask(
-                                shaderCallback: (bounds) {
-                                  return const LinearGradient(
-                                    colors: [Colors.green, Colors.blue], //
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ).createShader(bounds);
-                                },
-                                child: const Text(
-                                  "Previous",
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white, // IMPORTANT: white rakhna zaroori hai
-                                  ),
-                                ),
+                            padding: EdgeInsets.all(3), // ye border ki "thickness" hai
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(40),
+                              gradient: LinearGradient(
+                                colors: [Colors.green, Colors.blue],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-
-                            )
-
-                          ),
-                          onTap: (){
-                            pageController.previousPage(duration: Duration(milliseconds: 200), curve: Curves.linear);
-                          },
-                        ),
-
-
-                        GestureDetector(
-
-                          child: Container(
+                            ),
+                            child: Container(
                               padding: EdgeInsetsGeometry.all(5),
                               width: 100,
                               height: 60,
-                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(11),color: Color(0xff4cde8d)),
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(40),color: Colors.black87),
                               child: Center(
                                 child:                  ShaderMask(
                                   shaderCallback: (bounds) {
@@ -414,7 +421,7 @@ class loginScreenState extends State<loginScreen> {
                                     ).createShader(bounds);
                                   },
                                   child: const Text(
-                                    "Next",
+                                    "Previous",
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -425,6 +432,53 @@ class loginScreenState extends State<loginScreen> {
 
                               )
 
+                            ),
+                          ),
+                          onTap: (){
+                            pageController.previousPage(duration: Duration(milliseconds: 200), curve: Curves.linear);
+                          },
+                        ),
+
+
+                        GestureDetector(
+
+                          child: Container(
+                            padding: EdgeInsets.all(3), // ye border ki "thickness" hai
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(40),
+                              gradient: LinearGradient(
+                                colors: [Colors.green, Colors.blue],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Container(
+                                padding: EdgeInsetsGeometry.all(5),
+                                width: 100,
+                                height: 60,
+                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(40),color: Colors.black87),
+                                child: Center(
+                                  child:                  ShaderMask(
+                                    shaderCallback: (bounds) {
+                                      return const LinearGradient(
+                                        colors: [Colors.green, Colors.blue], //
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ).createShader(bounds);
+                                    },
+                                    child: const Text(
+                                      "Next",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                                      ),
+                                    ),
+                                  ),
+
+                                )
+
+                            ),
                           ),
                           onTap: (){
                             pageController.nextPage(duration: Duration(milliseconds: 200), curve: Curves.linear);
@@ -500,6 +554,7 @@ class loginScreenState extends State<loginScreen> {
                       Container(
                         width: 300,
                         child: TextField(
+                          style: TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
@@ -514,7 +569,7 @@ class loginScreenState extends State<loginScreen> {
 
                             hintText: 'Gmail',
                           ),
-                          controller: firstname,
+                          controller: gmail,
 
                         ),
                       ),
@@ -529,6 +584,7 @@ class loginScreenState extends State<loginScreen> {
                       Container(
                         width: 300,
                         child: TextField(
+                          style: TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
@@ -543,7 +599,7 @@ class loginScreenState extends State<loginScreen> {
 
                             hintText: 'Password',
                           ),
-                          controller: lastname,
+                          controller: password,
 
                         ),
                       ),
@@ -556,31 +612,42 @@ class loginScreenState extends State<loginScreen> {
                           GestureDetector(
 
                             child: Container(
-                                padding: EdgeInsetsGeometry.all(5),
-                                width: 100,
-                                height: 60,
-                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(11),color: Color(0xff4cde8d)),
-                                child: Center(
-                                  child:                  ShaderMask(
-                                    shaderCallback: (bounds) {
-                                      return const LinearGradient(
-                                        colors: [Colors.green, Colors.blue], //
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ).createShader(bounds);
-                                    },
-                                    child: const Text(
-                                      "Previous",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                              padding: EdgeInsets.all(3), // ye border ki "thickness" hai
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(40),
+                                gradient: LinearGradient(
+                                  colors: [Colors.green, Colors.blue],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Container(
+                                  padding: EdgeInsetsGeometry.all(5),
+                                  width: 100,
+                                  height: 60,
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(40),color: Colors.black87),
+                                  child: Center(
+                                    child:                  ShaderMask(
+                                      shaderCallback: (bounds) {
+                                        return const LinearGradient(
+                                          colors: [Colors.green, Colors.blue], //
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ).createShader(bounds);
+                                      },
+                                      child: const Text(
+                                        "Previous",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                                        ),
                                       ),
                                     ),
-                                  ),
 
-                                )
+                                  )
 
+                              ),
                             ),
                             onTap: (){
                               pageController.previousPage(duration: Duration(milliseconds: 200), curve: Curves.linear);
@@ -591,31 +658,42 @@ class loginScreenState extends State<loginScreen> {
                           GestureDetector(
 
                             child: Container(
-                                padding: EdgeInsetsGeometry.all(5),
-                                width: 100,
-                                height: 60,
-                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(11),color: Color(0xff4cde8d)),
-                                child: Center(
-                                  child:                  ShaderMask(
-                                    shaderCallback: (bounds) {
-                                      return const LinearGradient(
-                                        colors: [Colors.green, Colors.blue], //
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ).createShader(bounds);
-                                    },
-                                    child: const Text(
-                                      "Next",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                              padding: EdgeInsets.all(3), // ye border ki "thickness" hai
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(40),
+                                gradient: LinearGradient(
+                                  colors: [Colors.green, Colors.blue],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Container(
+                                  padding: EdgeInsetsGeometry.all(5),
+                                  width: 100,
+                                  height: 60,
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(40),color: Colors.black87),
+                                  child: Center(
+                                    child:                  ShaderMask(
+                                      shaderCallback: (bounds) {
+                                        return const LinearGradient(
+                                          colors: [Colors.green, Colors.blue], //
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ).createShader(bounds);
+                                      },
+                                      child: const Text(
+                                        "Next",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                                        ),
                                       ),
                                     ),
-                                  ),
 
-                                )
+                                  )
 
+                              ),
                             ),
                             onTap: (){
                               pageController.nextPage(duration: Duration(milliseconds: 200), curve: Curves.linear);
@@ -693,6 +771,7 @@ class loginScreenState extends State<loginScreen> {
                       Container(
                         width: 300,
                         child: TextField(
+                          style: TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
@@ -722,7 +801,9 @@ class loginScreenState extends State<loginScreen> {
                       Container(
                         width: 300,
                         child: TextField(
+                          style: TextStyle(color: Colors.white),
                           decoration: InputDecoration(
+
                             focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(color:Color(0xff4cde8d) )
@@ -749,31 +830,42 @@ class loginScreenState extends State<loginScreen> {
                           GestureDetector(
 
                             child: Container(
-                                padding: EdgeInsetsGeometry.all(5),
-                                width: 100,
-                                height: 60,
-                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(11),color: Color(0xff4cde8d)),
-                                child: Center(
-                                  child:                  ShaderMask(
-                                    shaderCallback: (bounds) {
-                                      return const LinearGradient(
-                                        colors: [Colors.green, Colors.blue], //
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ).createShader(bounds);
-                                    },
-                                    child: const Text(
-                                      "Previous",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                              padding: EdgeInsets.all(3), // ye border ki "thickness" hai
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(40),
+                                gradient: LinearGradient(
+                                  colors: [Colors.green, Colors.blue],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Container(
+                                  padding: EdgeInsetsGeometry.all(5),
+                                  width: 100,
+                                  height: 60,
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(40),color: Colors.black87),
+                                  child: Center(
+                                    child:                  ShaderMask(
+                                      shaderCallback: (bounds) {
+                                        return const LinearGradient(
+                                          colors: [Colors.green, Colors.blue], //
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ).createShader(bounds);
+                                      },
+                                      child: const Text(
+                                        "Previous",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                                        ),
                                       ),
                                     ),
-                                  ),
 
-                                )
+                                  )
 
+                              ),
                             ),
                             onTap: (){
                               pageController.previousPage(duration: Duration(milliseconds: 200), curve: Curves.linear);
@@ -784,34 +876,46 @@ class loginScreenState extends State<loginScreen> {
                           GestureDetector(
 
                             child: Container(
-                                padding: EdgeInsetsGeometry.all(5),
-                                width: 100,
-                                height: 60,
-                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(11),color: Color(0xff4cde8d)),
-                                child: Center(
-                                  child:                  ShaderMask(
-                                    shaderCallback: (bounds) {
-                                      return const LinearGradient(
-                                        colors: [Colors.green, Colors.blue], //
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ).createShader(bounds);
-                                    },
-                                    child: const Text(
-                                      "Next",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                              padding: EdgeInsets.all(3), // ye border ki "thickness" hai
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(40),
+                                gradient: LinearGradient(
+                                  colors: [Colors.green, Colors.blue],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Container(
+                                  padding: EdgeInsetsGeometry.all(5),
+                                  width: 100,
+                                  height: 60,
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(40),color: Colors.black87),
+                                  child: Center(
+                                    child:                  ShaderMask(
+                                      shaderCallback: (bounds) {
+                                        return const LinearGradient(
+                                          colors: [Colors.green, Colors.blue], //
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ).createShader(bounds);
+                                      },
+                                      child: const Text(
+                                        "Create",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white, // IMPORTANT: white rakhna zaroori hai
+                                        ),
                                       ),
                                     ),
-                                  ),
 
-                                )
+                                  )
 
+                              ),
                             ),
                             onTap: (){
-                              pageController.nextPage(duration: Duration(milliseconds: 200), curve: Curves.linear);
+                              // pageController.nextPage(duration: Duration(milliseconds: 200), curve: Curves.linear);
+                              sigup();
                             },
                           )
                         ],
