@@ -72,6 +72,8 @@ flutter:
     - assets/animations/Login.json
     - assets/animations/Pin code Password Protection, Secure Login animation.json
     - assets/animations/People reading news on phone.json
+    - assets/animations/Employee content.json
+    - assets/animations/Forget password animation.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

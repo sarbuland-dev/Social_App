@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:social_app/signin.dart';
 import 'package:social_app/wrapper.dart';
+import 'package:social_app/loading.dart';
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -22,8 +23,17 @@ class SignupScreenState extends State<SignupScreen> {
 
 
   sigup()async{
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(email: gmail.text, password: password.text);
-    Get.offAll(wrapper());
+    showLoadingDialog(context);
+    try{
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(email: gmail.text, password: password.text);
+      Get.offAll(wrapper());
+    }on FirebaseAuthException catch(e){
+      Get.snackbar('error msg', e.code);
+    }catch (e){
+      Get.snackbar('error msg', e.toString());
+    }
+    hideLoadingDialog( context);
+
   }
 
 
