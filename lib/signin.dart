@@ -8,7 +8,7 @@ import 'package:social_app/home.dart';
 import 'package:social_app/loading.dart';
 import 'package:social_app/validations.dart';
 import 'package:social_app/signup.dart';
-
+import 'package:social_app/wrapper.dart';
 
 
 
@@ -31,8 +31,13 @@ class _SigninscreenState extends State<Signinscreen>{
   String? passwordError;
   bool obscurePassword = true;
 
-  signin()async{
 
+
+
+
+
+
+  signin() async {
     setState(() {
       emailError = Validators.validateEmail(signin_gmail.text);
       passwordError = Validators.validatePassword(signin_password.text);
@@ -40,28 +45,26 @@ class _SigninscreenState extends State<Signinscreen>{
 
     if (emailError != null || passwordError != null) return;
 
-
-
-
     showLoadingDialog(context);
 
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: signin_gmail.text,
+        password: signin_password.text,
+      );
+      hideLoadingDialog(context);
+      Get.offAll(() => wrapper());
 
-    try{
-      await FirebaseAuth.instance.signInWithEmailAndPassword(email: signin_gmail.text, password: signin_password.text);
-      hideLoadingDialog( context);
-      Navigator.push(context, MaterialPageRoute(builder:(context)=> Homescreen()));
-
-    }on FirebaseAuthException catch(e){
+    } on FirebaseAuthException catch (e) {
+      hideLoadingDialog(context);   // ye add karo
       Get.snackbar('error msg', e.code);
-
-    }catch(e){
+    } catch (e) {
+      hideLoadingDialog(context);   // ye bhi add karo
       Get.snackbar('error msg', e.toString());
-
-
     }
-
-
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -151,6 +154,7 @@ class _SigninscreenState extends State<Signinscreen>{
                     Container(
                       width: 300,
                       child: TextField(
+                        obscureText: obscurePassword,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           focusedBorder: OutlineInputBorder(

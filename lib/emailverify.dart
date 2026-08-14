@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:social_app/home.dart';
 import 'package:social_app/signup.dart';
 import 'package:social_app/wrapper.dart';
 class Verify extends StatefulWidget{
@@ -46,9 +47,20 @@ class VerifyState extends State<Verify> {
     }
   }
 
-reload()async{
-    await FirebaseAuth.instance.currentUser!.reload().then((value) => {Get.offAll(wrapper())});
-}
+
+
+  reload() async {
+    await FirebaseAuth.instance.currentUser!.reload();
+    User? refreshedUser = FirebaseAuth.instance.currentUser;
+
+    if (refreshedUser != null && refreshedUser.emailVerified) {
+      Get.offAll(() => wrapper());   // naya wrapper instance -> naya StreamBuilder subscribe -> fresh data
+    } else {
+      Get.snackbar("Not Verified", "Verify your Email first",
+          margin: EdgeInsets.all(20), snackPosition: SnackPosition.TOP);
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {

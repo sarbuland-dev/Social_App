@@ -19,6 +19,13 @@ class Validators {
     return null;
   }
 
+
+  static String? validateLastName(String name, {String fieldName = 'Last Name'}) {
+    if (name.trim().isEmpty) return '$fieldName is required';
+    if (name.trim().length < 2) return '$fieldName must be at least 2 characters';
+    return null;
+  }
+
   static String? validatePhone(String phone) {
     if (phone.trim().isEmpty) return null; // optional
     final phoneRegex = RegExp(r'^[0-9]{10,15}$');

@@ -44,9 +44,11 @@ class _ForgetpasswordState extends State<Forgetpassword>{
       // Navigator.push(context, MaterialPageRoute(builder:(context)=> Homescreen()));
 
     }on FirebaseAuthException catch(e){
+      hideLoadingDialog( context);
       Get.snackbar('error msg', e.code);
 
     }catch(e){
+      hideLoadingDialog( context);
       Get.snackbar('error msg', e.toString());
 
 

@@ -6,6 +6,7 @@ import 'package:lottie/lottie.dart';
 import 'package:social_app/signin.dart';
 import 'package:social_app/wrapper.dart';
 import 'package:social_app/loading.dart';
+import 'package:social_app/validations.dart';
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -19,20 +20,64 @@ class SignupScreenState extends State<SignupScreen> {
   TextEditingController lastname=TextEditingController();
   TextEditingController gmail=TextEditingController();
   TextEditingController password=TextEditingController();
+  TextEditingController phone=TextEditingController();
+  TextEditingController username=TextEditingController();
+
+
+
+
+
+
+  String? NameError;
+  String? LastNameError;
+  String? emailError;
+  String? passwordError;
+  String? phoneError;
+  bool obscurePassword = true;
 
 
 
   sigup()async{
+    setState(() {
+      emailError = Validators.validateEmail(gmail.text);
+      passwordError = Validators.validatePassword(password.text);
+      NameError = Validators.validateName(firstname.text);
+      LastNameError = Validators.validateName(lastname.text);
+      phoneError = Validators.validatePhone(phone.text);
+    });
+
+
+    // Page 2 errors (Name)
+    if (NameError != null || LastNameError != null) {
+      pageController.jumpToPage(1);
+      return;
+    }
+    // Page 3 errors (Gmail/Password)
+    if (emailError != null || passwordError != null) {
+      pageController.jumpToPage(2);
+      return;
+    }
+    // Page 4 errors (Username/Phone)
+    if (NameError != null || phoneError != null) {
+      return; // already yahi page pe hain
+    }
+
+
+
+
     showLoadingDialog(context);
     try{
       await FirebaseAuth.instance.createUserWithEmailAndPassword(email: gmail.text, password: password.text);
+      hideLoadingDialog( context);
       Get.offAll(wrapper());
     }on FirebaseAuthException catch(e){
+      hideLoadingDialog( context);
       Get.snackbar('error msg', e.code);
     }catch (e){
+      hideLoadingDialog( context);
       Get.snackbar('error msg', e.toString());
     }
-    hideLoadingDialog( context);
+
 
   }
 
@@ -356,11 +401,16 @@ class SignupScreenState extends State<SignupScreen> {
                             borderSide: BorderSide(color:Color(0xff4cde8d) )
 
                           ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
                           enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide: BorderSide(color:Colors.black87 )
                           ),
                           prefixIcon:Icon(Icons.person,color:Color(0xff4cde8d)  ,),
+                          errorText: NameError,
 
                           hintText: 'First Name',
                          ),
@@ -386,11 +436,16 @@ class SignupScreenState extends State<SignupScreen> {
                               borderSide: BorderSide(color:Color(0xff4cde8d) )
 
                           ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
                           enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide: BorderSide(color:Colors.black87 )
                           ),
                           prefixIcon:Icon(Icons.person,color:Color(0xff4cde8d)  ,),
+                          errorText: LastNameError,
 
                           hintText: 'Last Name',
                         ),
@@ -571,11 +626,16 @@ class SignupScreenState extends State<SignupScreen> {
                                 borderSide: BorderSide(color:Color(0xff4cde8d) )
 
                             ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(color: Colors.red),
+                            ),
                             enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(color:Colors.black87 )
                             ),
                             prefixIcon:Icon(Icons.person,color:Color(0xff4cde8d)  ,),
+                            errorText: emailError,
 
                             hintText: 'Gmail',
                           ),
@@ -594,6 +654,7 @@ class SignupScreenState extends State<SignupScreen> {
                       Container(
                         width: 300,
                         child: TextField(
+                          obscureText: obscurePassword,
                           style: TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             focusedBorder: OutlineInputBorder(
@@ -601,11 +662,24 @@ class SignupScreenState extends State<SignupScreen> {
                                 borderSide: BorderSide(color:Color(0xff4cde8d) )
 
                             ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(color: Colors.red),
+                            ),
                             enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(color:Colors.black87 )
                             ),
                             prefixIcon:Icon(Icons.person,color:Color(0xff4cde8d)  ,),
+
+
+                            suffixIcon: IconButton(onPressed: (){
+                              setState(() {
+                                obscurePassword=!obscurePassword;
+                              });
+                            }, icon: Icon(          obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              color: Color(0xff4cde8d),)),
+                            errorText: passwordError,
 
                             hintText: 'Password',
                           ),
@@ -788,11 +862,16 @@ class SignupScreenState extends State<SignupScreen> {
                                 borderSide: BorderSide(color:Color(0xff4cde8d) )
 
                             ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(color: Colors.red),
+                            ),
                             enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(color:Colors.black87 )
                             ),
                             prefixIcon:Icon(Icons.person,color:Color(0xff4cde8d)  ,),
+                            errorText: NameError,
 
                             hintText: 'Username',
                           ),
@@ -819,15 +898,20 @@ class SignupScreenState extends State<SignupScreen> {
                                 borderSide: BorderSide(color:Color(0xff4cde8d) )
 
                             ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(color: Colors.red),
+                            ),
                             enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
                                 borderSide: BorderSide(color:Colors.black87 )
                             ),
                             prefixIcon:Icon(Icons.person,color:Color(0xff4cde8d)  ,),
+                            errorText: phoneError,
 
                             hintText: 'Phone Number (optional)',
                           ),
-                          controller: lastname,
+                          controller: phone,
 
                         ),
                       ),
