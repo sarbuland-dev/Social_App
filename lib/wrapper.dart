@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:social_app/bottomnavigation.dart';
 import 'package:social_app/signin.dart';
 import 'package:social_app/signup.dart';
 import 'package:social_app/home.dart';
@@ -19,7 +20,7 @@ class _wrapperState extends State<wrapper>{
       body: StreamBuilder(stream: FirebaseAuth.instance.authStateChanges(), builder: (context,snapshot){
         if (snapshot.hasData){
           if(snapshot.data!.emailVerified){
-            return Homescreen();
+            return BottomNav();
           }else{
             return Verify();
           }

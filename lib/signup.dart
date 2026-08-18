@@ -7,6 +7,8 @@ import 'package:social_app/signin.dart';
 import 'package:social_app/wrapper.dart';
 import 'package:social_app/loading.dart';
 import 'package:social_app/validations.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -22,6 +24,8 @@ class SignupScreenState extends State<SignupScreen> {
   TextEditingController password=TextEditingController();
   TextEditingController phone=TextEditingController();
   TextEditingController username=TextEditingController();
+
+
 
 
 
@@ -67,14 +71,35 @@ class SignupScreenState extends State<SignupScreen> {
 
     showLoadingDialog(context);
     try{
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(email: gmail.text, password: password.text);
+      UserCredential userCredential =
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: gmail.text,
+        password: password.text,
+      );
+      String uid = userCredential.user!.uid;
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .set({
+        'firstname': firstname.text,
+        'lastname': lastname.text,
+        'email': gmail.text,
+        'username': username.text,
+        'phone': phone.text,
+      });
+
+
       hideLoadingDialog( context);
       Get.offAll(wrapper());
+      // Get.back();
     }on FirebaseAuthException catch(e){
       hideLoadingDialog( context);
+      // Get.back();
       Get.snackbar('error msg', e.code);
     }catch (e){
       hideLoadingDialog( context);
+      // Get.back();
       Get.snackbar('error msg', e.toString());
     }
 
@@ -875,7 +900,7 @@ class SignupScreenState extends State<SignupScreen> {
 
                             hintText: 'Username',
                           ),
-                          controller: firstname,
+                          controller: username,
 
                         ),
                       ),

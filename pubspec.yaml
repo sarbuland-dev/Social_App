@@ -39,10 +39,14 @@ dependencies:
   firebase_core: ^4.13.0
   firebase_auth: ^6.5.7
   get: ^4.7.3
+  flutter_svg: ^2.0.10+1
+  google_fonts: ^6.2.1
+  cloud_firestore: ^6.8.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -74,6 +78,9 @@ flutter:
     - assets/animations/People reading news on phone.json
     - assets/animations/Employee content.json
     - assets/animations/Forget password animation.json
+    - assets/SVGs/backgroung.svg
+    - assets/pngs/message.png
+    - assets/pngs/camera.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
