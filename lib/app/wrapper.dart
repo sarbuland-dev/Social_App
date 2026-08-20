@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_app/bottomnavigation.dart';
-import 'package:social_app/signin.dart';
-import 'package:social_app/signup.dart';
-import 'package:social_app/home.dart';
-import 'package:social_app/emailverify.dart';
+import 'package:social_app/screens/home/bottomnavigation.dart';
+import 'package:social_app/screens/auth/signin.dart';
+import 'package:social_app/screens/auth/signup.dart';
+import 'package:social_app/screens/home/home.dart';
+import 'package:social_app/screens/auth/emailverify.dart';
 
 class wrapper extends StatefulWidget{
   @override

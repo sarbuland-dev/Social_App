@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:social_app/home.dart';
-import 'package:social_app/signup.dart';
-import 'package:social_app/wrapper.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:social_app/screens/home/home.dart';
+import 'package:social_app/screens/auth/signup.dart';
+import 'package:social_app/app/wrapper.dart';
 class Verify extends StatefulWidget{
   @override
   State<StatefulWidget> createState() => VerifyState();
@@ -81,15 +82,40 @@ class VerifyState extends State<Verify> {
             ShaderMask(
               shaderCallback: (bounds) {
                 return const LinearGradient(
+                  colors: [
+                    Colors.green,
+                    Colors.blue,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds);
+              },
+
+              child:  Text(
+                "Vibely",
+
+                style: GoogleFonts.angkor(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 30,
+            ),
+            ShaderMask(
+              shaderCallback: (bounds) {
+                return const LinearGradient(
                   colors: [Colors.green, Colors.blue], //
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ).createShader(bounds);
               },
-              child: const Text(
+              child:  Text(
                 "Verification",
-                style: TextStyle(
-                  fontSize: 50,
+                style: GoogleFonts.cherryCreamSoda(
+                  fontSize: 30,
                   fontWeight: FontWeight.bold,
                   color: Colors.white, // IMPORTANT: white rakhna zaroori hai
                 ),
@@ -98,7 +124,7 @@ class VerifyState extends State<Verify> {
             SizedBox(
               height: 30,
             ),
-            Text("Open your mail\n and click on the link \nprovided to verify \nemail & reload this page",style: TextStyle(color: Colors.white,fontSize: 30),),
+            Text("Open your mail and click on the link provided to verify email & reload this page",style: TextStyle(color: Colors.white,fontSize: 30),maxLines: 4,),
             SizedBox(
               height: 30,
             ),
@@ -108,7 +134,7 @@ class VerifyState extends State<Verify> {
               children: [GestureDetector(
 
                 child: Container(
-                  padding: EdgeInsets.all(3), // ye border ki "thickness" hai
+                  padding: EdgeInsets.all(1), // ye border ki "thickness" hai
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
                     gradient: LinearGradient(

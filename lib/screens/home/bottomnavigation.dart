@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:social_app/home.dart';
+import 'package:social_app/screens/home/home.dart';
 
 class BottomNav extends StatefulWidget {
   @override
@@ -35,44 +35,51 @@ class BottomNavState extends State<BottomNav> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
 
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10,sigmaY: 10),
-                      child: Container(
-                        height: 70,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: .1),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha: .15))
-
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            GestureDetector(child: Icon(Icons.home, color: currentindex == 0 ? Colors.white : Colors.black87,),onTap: (){
-                              setState(() {
-                                currentindex==0;
-                              });
-                            },),
-                            GestureDetector(child: Icon(Icons.search, color: currentindex == 1 ? Colors.white : Colors.black87,),onTap: (){
-                              setState(() {
-                                currentindex==1;
-                              });
-                            },),
-                            GestureDetector(child: Icon(Icons.person, color: currentindex == 2 ? Colors.white : Colors.black87,),onTap: (){
-                              setState(() {
-                                currentindex==2;
-                              });
-                            },),
-
-
-                          ],
-                        ),
+                  child:Container(
+                    padding: EdgeInsets.all(0), // ye border ki "thickness" hai
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      gradient: LinearGradient(
+                        colors: [Colors.green, Colors.blue],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
                     ),
-                  ),
+                    child: Container(
+                      height: 70,
+                      width: 300,
+
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(40),
+                          // color: Color(0xff4b5459)
+                          color: Colors.black87
+                      ),child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        GestureDetector(child: Icon(Icons.home, color: currentindex == 0 ? Colors.white : Colors.white54,),onTap: (){
+                          setState(() {
+                            currentindex = 0;
+                          });
+                        },),
+                        GestureDetector(child: Icon(Icons.search, color: currentindex == 1 ? Colors.white : Colors.white54,),onTap: (){
+                          setState(() {
+                            currentindex = 1;
+                          });
+                        },),
+                        GestureDetector(child: Icon(Icons.person, color: currentindex == 2 ? Colors.white : Colors.white54,),onTap: (){
+                          setState(() {
+                            currentindex = 2;
+                          });
+                        },),
+
+
+
+
+                      ],
+
+                    ),
+                    ),
+                  )
                 ),
               ),
             ),
