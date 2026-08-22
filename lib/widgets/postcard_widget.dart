@@ -1,18 +1,23 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:social_app/widgets/Like_animation.dart';
 
 class postcard extends StatelessWidget {
+  final String postId;
   final String username;
   final String caption;
   final String photoUrl;
   final Timestamp? createdAt;
+  final List likes;
 
   const postcard({
     super.key,
+    required this.postId,
     required this.username,
     required this.caption,
     required this.photoUrl,
+    required this.likes,
     this.createdAt,
   });
 
@@ -40,6 +45,9 @@ class postcard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String? currentUid = FirebaseAuth.instance.currentUser?.uid;
+    final bool isLiked = currentUid != null && likes.contains(currentUid);
+
     return Container(
       color: Colors.black,
       padding: EdgeInsets.symmetric(vertical: 10),
@@ -93,92 +101,37 @@ class postcard extends StatelessWidget {
             height: 10,
           ),
 
-          // image container
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.35,
-            width: double.infinity,
-            // ✅ Cloudinary se aayi URL hai, isliye Image.network use karo, Image.asset nahi
-            child: photoUrl.isEmpty
-                ? Container(
-              color: Colors.grey[900],
-              child: const Center(
-                child: Icon(Icons.image, color: Colors.grey, size: 40),
-              ),
-            )
-                : CachedNetworkImage(
-              imageUrl: photoUrl,
-              fit: BoxFit.cover,
-              fadeInDuration: Duration.zero, // ✅ dobara dikhne pe flicker na ho
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(color: Colors.purple),
-              ),
-              errorWidget: (context, url, error) => Container(
-                color: Colors.grey[900],
-                child: const Center(
-                  child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+          // ✅ image + double-tap like animation + like button + count
+          // (comment/share icons "trailing" ke through isi row mein add kiye hain)
+          LikeSection(
+            postId: postId,
+            imageUrl: photoUrl,
+            initialLikeCount: likes.length,
+            isLiked: isLiked,
+            imageHeight: MediaQuery.of(context).size.height * 0.35,
+            trailing: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {},
+                  child: const Icon(Icons.comment_outlined, color: Colors.white, size: 22),
                 ),
-              ),
+                const SizedBox(width: 6),
+                const Text('112', style: TextStyle(color: Colors.white, fontSize: 15)),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () {},
+                  child: Image.asset(
+                    "assets/pngs/message.png",
+                    color: Colors.white,
+                    width: 20,
+                    height: 20,
+                  ),
+                ),
+              ],
             ),
           ),
 
-          // like container
-          Padding(
-            padding: EdgeInsets.only(right: 100, top: 8),
-            child: Container(
-              margin: EdgeInsets.only(right: 10, left: 10),
-              padding: EdgeInsets.all(1),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                gradient: LinearGradient(
-                  colors: [Colors.green, Colors.blue],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Container(
-                height: 35,
-                width: 250,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.black87,
-                ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(left: 30, right: 5),
-                      child: GestureDetector(
-                        onTap: () {},
-                        child: Icon(Icons.favorite, color: Colors.red, size: 20),
-                      ),
-                    ),
-                    Text('112', style: TextStyle(color: Colors.white, fontSize: 15)),
-                    SizedBox(width: 10),
-                    Padding(
-                      padding: EdgeInsets.only(left: 10, right: 5),
-                      child: GestureDetector(
-                        onTap: () {},
-                        child: Icon(Icons.comment_outlined, color: Colors.white, size: 20),
-                      ),
-                    ),
-                    Text('112', style: TextStyle(color: Colors.white, fontSize: 15)),
-                    SizedBox(width: 10),
-                    Padding(
-                      padding: EdgeInsets.only(left: 10, right: 5),
-                      child: GestureDetector(
-                        onTap: () {},
-                        child: Image.asset(
-                          "assets/pngs/message.png",
-                          color: Colors.white,
-                          width: 20,
-                          height: 20,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          SizedBox(height: 8),
 
           // Caption — left aligned, more/less button caption ke saath usi line pe
           Padding(

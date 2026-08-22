@@ -11,12 +11,17 @@ void main() async{
   runApp(myApp());
 }
 class myApp extends StatelessWidget{
-@override
+  @override
   Widget build(BuildContext context) {
-  return GetMaterialApp(
-    debugShowCheckedModeBanner: false,
-    home:wrapper() ,
-  );
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.black,
+        canvasColor: Colors.black,
+        brightness: Brightness.dark,
+      ),
+      home:wrapper() ,
+    );
 
 
   }

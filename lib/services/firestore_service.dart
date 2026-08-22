@@ -21,7 +21,7 @@ class FirestoreService {
     return null;
   }
 
-  // 👇 post create karne ke liye
+  // 👇 Naya function: post create karne ke liye
   Future<String> createPost(Uint8List file, String caption) async {
     try {
       String uid = getCurrentUid()!;
@@ -31,10 +31,10 @@ class FirestoreService {
       Map<String, dynamic>? userData = await getUserData();
       String username = userData?['username'] ?? 'Unknown';
 
-      // 1. Image ko Cloudinary pe upload karo (Firebase Storage NAHI)
+      // 1. Image ko Cloudinary pe upload karo (Firebase Storage ki jagah)
       String imageUrl = await CloudinaryService.uploadImage(file);
 
-      // 2. Post ka data Firestore mein save karo
+      // 3. Post ka data Firestore mein save karo
       await _db.collection('posts').doc(postId).set({
         'postId': postId,
         'uid': uid,
@@ -48,6 +48,27 @@ class FirestoreService {
       return "success";
     } catch (e) {
       return e.toString();
+    }
+  }
+
+  /// Post ko like/unlike karta hai. `liked = true` karne se uid 'likes' array
+  /// mein add hota hai, `liked = false` se remove hota hai. Ye idempotent hai —
+  /// UI (LikeSection widget) jo bhi final state batata hai, wahi Firestore mein
+  /// set ho jata hai (chahe double-tap ho ya button-tap).
+  Future<void> setLikeStatus(String postId, bool liked) async {
+    String? uid = getCurrentUid();
+    if (uid == null) throw Exception("User logged in nahi hai");
+
+    DocumentReference postRef = _db.collection('posts').doc(postId);
+
+    if (liked) {
+      await postRef.update({
+        'likes': FieldValue.arrayUnion([uid]),
+      });
+    } else {
+      await postRef.update({
+        'likes': FieldValue.arrayRemove([uid]),
+      });
     }
   }
 }

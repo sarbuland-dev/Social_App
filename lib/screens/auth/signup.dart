@@ -1,11 +1,14 @@
-
+import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:social_app/screens/auth/signin.dart';
+import 'package:social_app/screens/post/post_crop.dart';
 import 'package:social_app/app/wrapper.dart';
+import 'package:social_app/services/cloudinary_services.dart';
 import 'package:social_app/utils/loading_dialog.dart';
 import 'package:social_app/utils/validators.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,7 +21,7 @@ class SignupScreen extends StatefulWidget {
 
 class SignupScreenState extends State<SignupScreen> {
   PageController pageController=PageController(initialPage: 0);
-  
+
   TextEditingController firstname=TextEditingController();
   TextEditingController lastname=TextEditingController();
   TextEditingController gmail=TextEditingController();
@@ -40,9 +43,89 @@ class SignupScreenState extends State<SignupScreen> {
   String? phoneError;
   bool obscurePassword = true;
 
+  // ---------- Profile photo (Screen 5) ke liye ----------
+  // Null hi rehta hai jab tak user khud photo select na kare.
+  // Skip karne pe bhi null hi rehta hai -> default 'assets/avatar/man.png'
+  // hi temporary/permanent placeholder ki tarah dikhta rahega.
+  Uint8List? profileImage;
+  bool isCreatingAccount = false;
+
+  pickImage(ImageSource source) async {
+    final ImagePicker _imagePicker = ImagePicker();
+    XFile? _file = await _imagePicker.pickImage(source: source);
+
+    if (_file != null) {
+      return await _file.readAsBytes();
+    }
+    print('No image selected');
+  }
+
+  selectProfileImage(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text('Set Profile Photo'),
+          children: [
+            SimpleDialogOption(
+              padding: EdgeInsets.all(10),
+              child: Text("Take a Photo"),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                Uint8List? pickedfile = await pickImage(ImageSource.camera);
+                await _openCropScreen(pickedfile);
+              },
+            ),
+            SimpleDialogOption(
+              padding: EdgeInsets.all(10),
+              child: Text("Choose from Gallery"),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                Uint8List? pickedfile = await pickImage(ImageSource.gallery);
+                await _openCropScreen(pickedfile);
+              },
+            ),
+            SimpleDialogOption(
+              padding: EdgeInsets.all(10),
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _openCropScreen(Uint8List? pickedfile) async {
+    if (pickedfile == null) return;
+
+    final Uint8List? croppedBytes = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ImageCropScreen(imageBytes: pickedfile),
+      ),
+    );
+
+    if (croppedBytes != null) {
+      setState(() {
+        profileImage = croppedBytes;
+      });
+    }
+    // agar user ne crop screen se cancel (X) dabaya, croppedBytes null hoga
+    // aur profileImage set nahi hoga -> default asset hi dikhta rahega
+  }
 
 
-  sigup()async{
+
+  // Page 1-4 ki validation yahin hoti hai. Sab sahi ho to account create
+  // nahi karte seedha -> pehle user ko profile photo wale page (index 4)
+  // pe le jate hain. Wahan se account actually create hota hai.
+  validateAndGoToProfilePage() {
     setState(() {
       emailError = Validators.validateEmail(gmail.text);
       passwordError = Validators.validatePassword(password.text);
@@ -67,11 +150,21 @@ class SignupScreenState extends State<SignupScreen> {
       return; // already yahi page pe hain
     }
 
+    // Sab sahi hai -> profile photo wale page pe le jao
+    pageController.jumpToPage(4);
+  }
 
-
+  // Ye function ab actual Firebase account banata hai. Isay page 5 (profile
+  // photo screen) ke "Continue"/"Skip For Now" dono buttons call karte hain.
+  // profileImage null ho (skip) to bhi account ban jata hai, bas
+  // 'profileImageUrl' field Firestore me empty rehta hai.
+  sigup() async {
+    setState(() {
+      isCreatingAccount = true;
+    });
 
     showLoadingDialog(context);
-    try{
+    try {
       UserCredential userCredential =
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: gmail.text,
@@ -79,38 +172,47 @@ class SignupScreenState extends State<SignupScreen> {
       );
       String uid = userCredential.user!.uid;
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .set({
+      // Agar user ne profile photo select ki hai to Cloudinary pe upload karo,
+      // warna URL empty rakho -> app me default avatar dikhega
+      String profileImageUrl = "";
+      if (profileImage != null) {
+        profileImageUrl = await CloudinaryService.uploadImage(profileImage!);
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'firstname': firstname.text,
         'lastname': lastname.text,
         'email': gmail.text,
         'username': username.text,
         'phone': phone.text,
+        'profileImageUrl': profileImageUrl,
       });
 
-
-      hideLoadingDialog( context);
+      hideLoadingDialog(context);
       Get.offAll(wrapper());
-      // Get.back();
-    }on FirebaseAuthException catch(e){
-      hideLoadingDialog( context);
-      // Get.back();
+    } on FirebaseAuthException catch (e) {
+      hideLoadingDialog(context);
+      setState(() {
+        isCreatingAccount = false;
+      });
       Get.snackbar('error msg', e.code);
-    }catch (e){
-      hideLoadingDialog( context);
-      // Get.back();
+    } catch (e) {
+      hideLoadingDialog(context);
+      setState(() {
+        isCreatingAccount = false;
+      });
       Get.snackbar('error msg', e.toString());
     }
-
-
   }
 
 
   int currentpage=0;
   @override
   Widget build(BuildContext context) {
+    // Keyboard khula hai ya nahi - ye check kar ke neeche wala indicator
+    // hide kar denge taake wo TextField ke upar overlap na kare
+    final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -168,7 +270,7 @@ class SignupScreenState extends State<SignupScreen> {
                           Text(
                             'Makes Friend\naround the World',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.cherryCreamSoda(
+                            style: GoogleFonts.agbalumo(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 fontSize: 30
@@ -1002,85 +1104,308 @@ class SignupScreenState extends State<SignupScreen> {
                         ),
 
                         // Previous / Create Buttons
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-
-                          children: [
-
-                            // Previous
-
-
-                            // Create
-                            Center(
-                              child: GestureDetector(
-                                onTap: () {
-                                  sigup();
-                                },
-
-                                child: Container(
-                                  padding: const EdgeInsets.all(1),
-
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(40),
-
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Colors.green,
-                                        Colors.blue,
-                                      ],
-
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                  ),
-
-                                  child: Container(
-                                    padding: const EdgeInsets.all(5),
-
-                                    width: 100,
-                                    height: 60,
-
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(40),
-                                      color: Colors.black87,
-                                    ),
-
-                                    child: Center(
-                                      child: ShaderMask(
-                                        shaderCallback: (bounds) {
-                                          return const LinearGradient(
-                                            colors: [
-                                              Colors.green,
-                                              Colors.blue,
-                                            ],
-
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                          ).createShader(bounds);
-                                        },
-
-                                        child: const Text(
-                                          "Create",
-
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        // Row(
+                        //   mainAxisAlignment: MainAxisAlignment.center,
+                        //
+                        //   children: [
+                        //
+                        //     // Previous
+                        //
+                        //
+                        //     // Create
+                        //     Center(
+                        //       child: GestureDetector(
+                        //         onTap: () {
+                        //           validateAndGoToProfilePage();
+                        //         },
+                        //
+                        //         child: Container(
+                        //           padding: const EdgeInsets.all(1),
+                        //
+                        //           decoration: BoxDecoration(
+                        //             borderRadius: BorderRadius.circular(40),
+                        //
+                        //             gradient: const LinearGradient(
+                        //               colors: [
+                        //                 Colors.green,
+                        //                 Colors.blue,
+                        //               ],
+                        //
+                        //               begin: Alignment.topLeft,
+                        //               end: Alignment.bottomRight,
+                        //             ),
+                        //           ),
+                        //
+                        //           child: Container(
+                        //             padding: const EdgeInsets.all(5),
+                        //
+                        //             width: 100,
+                        //             height: 60,
+                        //
+                        //             decoration: BoxDecoration(
+                        //               borderRadius: BorderRadius.circular(40),
+                        //               color: Colors.black87,
+                        //             ),
+                        //
+                        //             child: Center(
+                        //               child: ShaderMask(
+                        //                 shaderCallback: (bounds) {
+                        //                   return const LinearGradient(
+                        //                     colors: [
+                        //                       Colors.green,
+                        //                       Colors.blue,
+                        //                     ],
+                        //
+                        //                     begin: Alignment.topLeft,
+                        //                     end: Alignment.bottomRight,
+                        //                   ).createShader(bounds);
+                        //                 },
+                        //
+                        //                 child: const Text(
+                        //                   "Create",
+                        //
+                        //                   style: TextStyle(
+                        //                     fontSize: 15,
+                        //                     fontWeight: FontWeight.bold,
+                        //                     color: Colors.white,
+                        //                   ),
+                        //                 ),
+                        //               ),
+                        //             ),
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),
                 ),
               ),
+
+
+              //5screen
+              Container(
+                height: double.infinity,
+                width: double.infinity,
+                padding: EdgeInsets.all(20),
+                color: Colors.black,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 100,
+                    ),
+                    ShaderMask(
+                      shaderCallback: (bounds) {
+                        return const LinearGradient(
+                          colors: [Colors.green, Colors.blue],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ).createShader(bounds);
+                      },
+
+                      child: Text(
+                        "Vibely",
+                        style: GoogleFonts.angkor(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+
+                    GestureDetector(
+                      onTap: ()=> selectProfileImage(context),
+                      child: Container(
+                        padding: EdgeInsets.all(2), // ye border ki "thickness" hai
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [Colors.green, Colors.blue],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),child: Container(
+                        height: 100,
+                        width: 100,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            // color: Color(0xff4b5459)
+                            color: Colors.black87),
+                        child: ClipOval(
+                          child: profileImage != null
+                          // User ne photo select ki hai -> wahi dikhao
+                              ? Image.memory(profileImage!, fit: BoxFit.cover)
+                          // Warna default temporary avatar dikhao
+                              : Image.asset('assets/avatar/man.png'),
+                        ),
+
+                      ),
+
+                      ),
+                    ),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    ShaderMask(
+                      shaderCallback: (bounds) {
+                        return const LinearGradient(
+                          colors: [Colors.green, Colors.blue],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ).createShader(bounds);
+                      },
+
+                      child: Text(
+                        "Choose Your Profile Photo",
+                        style: GoogleFonts.cherryCreamSoda(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 30,right: 30),
+                      child: Align(
+                          alignment: Alignment.center,
+                          child: Text('Add a profile photo so your \nfriends can easily recognize you.',style: TextStyle(color: Colors.white, fontSize: 15),maxLines: 2,)),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(2), // ye border ki "thickness" hai
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [Colors.green, Colors.blue],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Container(
+                        height: 80,
+                        width: 80,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            // color: Color(0xff4b5459)
+                            color: Colors.black87),
+                        child: GestureDetector(
+                          onTap: () => selectProfileImage(context),
+                          child: isCreatingAccount
+                              ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2),
+                          )
+                              : Icon(
+                            Icons.upload,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+
+
+                    Align(alignment: Alignment.center, child: Text('You can change your profile photo anytime.',style: TextStyle(color: Colors.white, fontSize: 15),maxLines: 2,)),
+                    SizedBox(
+                      height: 30,
+                    ),
+
+                    // ---------- Skip (left) / Create (right) buttons ----------
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Skip - photo ko ignore kar ke seedha account create karta hai
+                        GestureDetector(
+                          onTap: isCreatingAccount
+                              ? null
+                              : () {
+                            setState(() {
+                              profileImage = null;
+                            });
+                            sigup();
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            child: Text(
+                              'Skip',
+                              style: TextStyle(color: Colors.white70, fontSize: 18),
+                            ),
+                          ),
+                        ),
+
+                        // Create - jo bhi photo select ki ho (ya na ki ho) usi ke
+                        // sath account create karta hai
+                        GestureDetector(
+                          onTap: isCreatingAccount ? null : () => sigup(),
+                          child: Container(
+                            padding: const EdgeInsets.all(1),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(40),
+                              gradient: const LinearGradient(
+                                colors: [Colors.green, Colors.blue],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              width: 120,
+                              height: 55,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(40),
+                                color: Colors.black87,
+                              ),
+                              child: Center(
+                                child: isCreatingAccount
+                                    ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2),
+                                )
+                                    : ShaderMask(
+                                  shaderCallback: (bounds) {
+                                    return const LinearGradient(
+                                      colors: [Colors.green, Colors.blue],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ).createShader(bounds);
+                                  },
+                                  child: const Text(
+                                    "Create",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+
+
+                  ],
+                ),
+              )
 
 
 
@@ -1091,58 +1416,59 @@ class SignupScreenState extends State<SignupScreen> {
           ),
 
 
-          Positioned(
-            bottom: 100,
+          if (!isKeyboardOpen)
+            Positioned(
+              bottom: 100,
               left: 130,
-            right: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Row(
-                  children:List.generate(4, (index){
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
+              right: 0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Row(
+                      children:List.generate(4, (index){
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
 
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                      ),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                          ),
 
-                      height: 8,
-                      width: currentpage == index ? 25 : 8,
+                          height: 8,
+                          width: currentpage == index ? 25 : 8,
 
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
 
-                        gradient: const LinearGradient(
-                          colors: [
-                            Colors.green,
-                            Colors.blue,
-                          ],
-                        ),
-                      ),
-                    );
-                  })
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-                Padding(
-                  padding: EdgeInsets.only(right: 20),
-                  child: Text(
-                    currentpage == 3
-                        ? "Swipe to go back"
-                        : "Swipe to continue →",
-
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                    ),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Colors.green,
+                                Colors.blue,
+                              ],
+                            ),
+                          ),
+                        );
+                      })
                   ),
-                )
-              ],
-            ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(right: 20),
+                    child: Text(
+                      currentpage == 4
+                          ? "Swipe to go back"
+                          : "Swipe to continue →",
 
-          ),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                      ),
+                    ),
+                  )
+                ],
+              ),
+
+            ),
 
 
 
@@ -1153,7 +1479,6 @@ class SignupScreenState extends State<SignupScreen> {
     );
   }
 }
-
 
 
 

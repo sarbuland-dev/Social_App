@@ -119,11 +119,13 @@ class _HomescreenState extends State<Homescreen>{
               final data = posts[index].data() as Map<String, dynamic>;
 
               return postcard(
+                postId: data['postId'] ?? '',
 
                 username: data['username'] ?? 'Unknown',
                 caption: data['caption'] ?? '',
                 photoUrl: data['imageUrl'] ?? '',
                 createdAt: data['createdAt'],
+                likes: data['likes'] ?? [],
               );
             },
           );
