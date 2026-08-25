@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:social_app/widgets/Like_animation.dart';
+import 'package:social_app/widgets/modalbottomsheet.dart';
 
 class postcard extends StatelessWidget {
   final String postId;
@@ -89,7 +90,10 @@ class postcard extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.only(right: 10),
                     child: GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        showModalBottomSheet(context: context, builder: (context) => Sheet(username:username, ),);
+
+                      },
                       child: Icon(Icons.more_horiz, color: Colors.white),
                     ),
                   ),

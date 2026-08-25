@@ -1,8 +1,10 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 import 'package:social_app/screens/home/home.dart';
+import 'package:social_app/screens/home/profile.dart';
+import 'package:social_app/screens/home/search.dart';
 
 class BottomNav extends StatefulWidget {
   @override
@@ -14,6 +16,8 @@ class BottomNavState extends State<BottomNav> {
 
   List<Widget> pages = [
     Homescreen(),
+    Search(),
+    Profile()
   ];
 
   @override
