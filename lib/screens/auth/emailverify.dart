@@ -124,7 +124,7 @@ class VerifyState extends State<Verify> {
             SizedBox(
               height: 30,
             ),
-            Text("Open your mail and click on the link provided to verify email & reload this page",style: TextStyle(color: Colors.white,fontSize: 30),maxLines: 4,),
+            Align(alignment: Alignment.center,child: Text("Open your mail and click on the link provided to verify email & reload this page",style: TextStyle(color: Colors.white,fontSize: 30),maxLines: 4,)),
             SizedBox(
               height: 30,
             ),

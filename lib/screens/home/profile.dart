@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:social_app/screens/auth/signup.dart';
 import 'package:social_app/services/firestore_service.dart';
 
 class Profile extends StatefulWidget {
@@ -23,10 +26,156 @@ class ProfileState extends State<Profile> {
 
   fetchUser() async {
     Map<String, dynamic>? data = await _firestoreService.getUserData();
+    print("USER DATA: $data");
     setState(() {
       userData = data;
       isLoading = false;
     });
+  }
+
+
+
+  // to delete
+  void _showPostOptions(String postId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Color(0xff293038),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text(
+                  "Delete this post",
+                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  Navigator.pop(context);        // pehle bottom sheet band karo
+                  _confirmDelete(postId);          // phir confirmation dialog dikhao
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.close, color: Colors.white),
+                title: Text("Cancel", style: TextStyle(color: Colors.white)),
+                onTap: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+
+  void _confirmDelete(String postId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Color(0xff293038),
+          title: Text("Delete Post?", style: TextStyle(color: Colors.white)),
+          content: Text(
+            "Are You Sure! You Want To Delete This Post  .",
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel", style: TextStyle(color: Colors.white)),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // dialog band karo
+                await _firestoreService.deletePost(postId);
+              },
+              child: Text("Delete", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  // signout
+  signout()async{
+    await FirebaseAuth.instance.signOut();
+    Navigator.push(context, MaterialPageRoute(builder:(context)=> SignupScreen()));
+  }
+
+
+
+
+
+  // to signout
+  void _showSignoutOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Color(0xff293038),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.assignment_ind_outlined, color: Colors.red),
+                title: Text(
+                  "SignOut",
+                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  Navigator.pop(context);        // pehle bottom sheet band karo
+                  _confirmSignout();          // phir confirmation dialog dikhao
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.close, color: Colors.white),
+                title: Text("Cancel", style: TextStyle(color: Colors.white)),
+                onTap: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+
+  void _confirmSignout() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Color(0xff293038),
+          title: Text("SignOut?", style: TextStyle(color: Colors.white)),
+          content: Text(
+            "Are You Sure! You Want To SignOut  .",
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel", style: TextStyle(color: Colors.white)),
+            ),
+            TextButton(
+              onPressed: ()  {
+                Get.to(signout());
+
+              },
+              child: Text("SignOut", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -53,7 +202,9 @@ class ProfileState extends State<Profile> {
           Padding(
             padding: EdgeInsets.all(20),
             child: GestureDetector(
-              onTap: () {},
+              onTap: () {
+                _showSignoutOptions();
+              },
               child: Icon(
                 Icons.menu,
                 color: Colors.white,
@@ -288,11 +439,13 @@ class ProfileState extends State<Profile> {
                     itemBuilder: (context, index) {
                       final data = posts[index].data() as Map<String, dynamic>;
                       final imageUrl = data['imageUrl'] ?? '';
+                      final postId = data['postId'] ?? '';
 
                       return GestureDetector(
                         onTap: () {
                           // yahan chaho to post detail screen pe navigate kar sakte ho
                         },
+                        onLongPress: () => _showPostOptions(postId),
                         child: Image.network(
                           imageUrl,
                           fit: BoxFit.cover,

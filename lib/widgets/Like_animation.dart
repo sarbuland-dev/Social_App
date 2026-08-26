@@ -134,9 +134,8 @@ class _LikeSectionState extends State<LikeSection>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              SizedBox(
-                height: widget.imageHeight,
-                width: double.infinity,
+              AspectRatio(
+                aspectRatio: 1, // 👈 crop screen mein bhi 1:1 hai, isliye yahan bhi 1:1
                 child: widget.imageUrl.isEmpty
                     ? Container(
                   color: Colors.grey[900],
@@ -144,21 +143,26 @@ class _LikeSectionState extends State<LikeSection>
                     child: Icon(Icons.image, color: Colors.grey, size: 40),
                   ),
                 )
-                    : CachedNetworkImage(
-                  imageUrl: widget.imageUrl,
+                    : Image.network(   // (tumne cached_network_image hataya tha, is file mein bhi hata dena)
+                  widget.imageUrl,
                   fit: BoxFit.cover,
-                  fadeInDuration: Duration.zero,
-                  placeholder: (context, url) => const Center(
-                    child: CircularProgressIndicator(color: Colors.purple),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[900],
-                    child: const Center(
-                      child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
-                    ),
-                  ),
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const Center(
+                      child: CircularProgressIndicator(color: Colors.purple),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[900],
+                      child: const Center(
+                        child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                      ),
+                    );
+                  },
                 ),
               ),
+
 
               // ✅ Double tap pe gradient heart pop-up
               if (_showHeartOverlay)

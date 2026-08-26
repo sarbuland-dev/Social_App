@@ -7,18 +7,22 @@ import 'package:social_app/widgets/modalbottomsheet.dart';
 class postcard extends StatelessWidget {
   final String postId;
   final String username;
+  final String uid;
   final String caption;
   final String photoUrl;
   final Timestamp? createdAt;
+  final String avatarUrl;
   final List likes;
 
   const postcard({
     super.key,
     required this.postId,
     required this.username,
+    required this.uid,
     required this.caption,
     required this.photoUrl,
     required this.likes,
+    required this.avatarUrl,
     this.createdAt,
   });
 
@@ -46,8 +50,10 @@ class postcard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     final String? currentUid = FirebaseAuth.instance.currentUser?.uid;
     final bool isLiked = currentUid != null && likes.contains(currentUid);
+    final bool isOwnPost = currentUid != null && currentUid == uid; // 👈 apni post check
 
     return Container(
       color: Colors.black,
@@ -79,20 +85,36 @@ class postcard extends StatelessWidget {
                     height: 45,
                     margin: EdgeInsets.all(5),
                     decoration: BoxDecoration(shape: BoxShape.circle),
-                    child: Image.asset('assets/avatar/black-man.png'),
+                    child: ClipOval(
+                      child: avatarUrl.isNotEmpty
+                          ? Image.network(
+                        avatarUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Image.asset('assets/avatar/black-man.png', fit: BoxFit.cover),
+                      )
+                          : Image.asset('assets/avatar/black-man.png', fit: BoxFit.cover),
+                    ),
                   ),
+
                   Expanded(
                     child: Text(
                       username,
                       style: TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ),
-                  Padding(
+                  // 👇 3-dot menu sirf tab dikhta hai jab ye post apni na ho —
+                  // apni post pe block/report karne ka koi matlab nahi
+                  isOwnPost
+                      ? SizedBox.shrink()
+                      : Padding(
                     padding: EdgeInsets.only(right: 10),
                     child: GestureDetector(
                       onTap: () {
-                        showModalBottomSheet(context: context, builder: (context) => Sheet(username:username, ),);
-
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) => Sheet(username: username, posterUid: uid),
+                        );
                       },
                       child: Icon(Icons.more_horiz, color: Colors.white),
                     ),
@@ -109,6 +131,7 @@ class postcard extends StatelessWidget {
           // (comment/share icons "trailing" ke through isi row mein add kiye hain)
           LikeSection(
             postId: postId,
+            key: ValueKey(postId),
             imageUrl: photoUrl,
             initialLikeCount: likes.length,
             isLiked: isLiked,

@@ -73,21 +73,24 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(10),
         child: Crop(
           image: widget.imageBytes,
           controller: _cropController,
-          aspectRatio: 1, // ✅ 1:1 square — Instagram jaisa
+          aspectRatio: 1,
           withCircleUi: false,
           baseColor: Colors.black,
-          maskColor: Colors.black.withOpacity(0.65), // crop area ke bahar ka hissa dhundhla
+          maskColor: Colors.black.withOpacity(0.65),
           radius: 0,
-          interactive: true, // ✅ pinch-to-zoom + drag/pan allow karta hai
+          interactive: true,
+          fixCropRect: true,                              // 👈 add karo — box fix rahega, sirf image move/zoom hogi
+          cornerDotBuilder: (size, edgeAlignment) =>
+          const SizedBox.shrink(),                     // 👈 add karo — dots hide ho jayen ge
           progressIndicator: const CircularProgressIndicator(color: Colors.purple),
           onCropped: (CropResult result) {
             switch (result) {
               case CropSuccess(:final croppedImage):
-                Navigator.pop(context, croppedImage); // ✅ cropped bytes wapis postscreen ko
+                Navigator.pop(context, croppedImage);
               case CropFailure(:final cause):
                 setState(() => _isCropping = false);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -96,6 +99,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
             }
           },
         ),
+
       ),
     );
   }

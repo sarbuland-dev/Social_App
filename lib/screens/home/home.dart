@@ -9,6 +9,7 @@ import 'package:social_app/screens/post/postscreen.dart';
 import 'package:social_app/screens/auth/signup.dart';
 
 import 'package:social_app/utils/loading_dialog.dart';
+import 'package:social_app/services/seed_services.dart';
 import 'package:get/get.dart';
 import 'package:social_app/widgets/postcard_widget.dart';
 
@@ -35,6 +36,7 @@ class _HomescreenState extends State<Homescreen>{
   void initState() {
     super.initState();
     fetchUser();
+    SeedService.seedDummyPostsIfNeeded();
   }
 
   fetchUser() async {
@@ -52,10 +54,7 @@ class _HomescreenState extends State<Homescreen>{
 
 
 
-  signout()async{
-    await FirebaseAuth.instance.signOut();
-    Navigator.push(context, MaterialPageRoute(builder:(context)=> SignupScreen()));
-  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +68,7 @@ class _HomescreenState extends State<Homescreen>{
               padding: EdgeInsetsGeometry.all(15),
               child: GestureDetector(
                 onTap: (){
-                      Get.to(signout());
+
                 },
                 child: Image.asset('assets/pngs/message.png',height: 25,width: 25,color: Colors.white,),
               ))
@@ -97,39 +96,70 @@ class _HomescreenState extends State<Homescreen>{
           ),
         ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('posts')
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await fetchUser();
+        },              // 👈 neeche khinchne pe ye chalega
+        color: Colors.white,
+        backgroundColor: Colors.black87,
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('posts')
+              .orderBy('createdAt', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No posts yet"));
-          }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text("No posts yet"));
+            }
 
-          final posts = snapshot.data!.docs;
+            final posts = snapshot.data!.docs;
+            // 👇 Blocked users ki filtering — dono taraf se
+            List<String> blockedUsers = List<String>.from(userData?['blockedUsers'] ?? []);
+            List<String> blockedBy = List<String>.from(userData?['blockedBy'] ?? []);
+            print("BLOCKED USERS: $blockedUsers");
+            print("BLOCKED BY: $blockedBy");
+            for (var doc in posts) {
+              final d = doc.data() as Map<String, dynamic>;
+              print("POST UID: '${d['uid']}'  username: ${d['username']}");
+            }
 
-          return ListView.builder(
-            itemCount: posts.length,
-            itemBuilder: (context, index) {
-              final data = posts[index].data() as Map<String, dynamic>;
+            final visiblePosts = posts.where((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              final postUid = data['uid'] ?? '';
+              // Agar maine isko block kiya hai, YA isne mujhe block kiya hai — post hide
+              return !blockedUsers.contains(postUid) && !blockedBy.contains(postUid);
+            }).toList();
 
-              return postcard(
-                postId: data['postId'] ?? '',
+            if (visiblePosts.isEmpty) {
+              return const Center(child: Text("No posts yet", style: TextStyle(color: Colors.white)));
+            }
 
-                username: data['username'] ?? 'Unknown',
-                caption: data['caption'] ?? '',
-                photoUrl: data['imageUrl'] ?? '',
-                createdAt: data['createdAt'],
-                likes: data['likes'] ?? [],
-              );
-            },
-          );
-        },
+            return ListView.builder(
+              itemCount: visiblePosts.length,                         // ✅
+              itemBuilder: (context, index) {
+                final data = visiblePosts[index].data() as Map<String, dynamic>;
+
+
+                return postcard(
+                  postId: data['postId'] ?? '',
+                  key: ValueKey(data['postId']),
+                  uid: data['uid'] ?? '',
+
+                  username: data['username'] ?? 'Unknown',
+                  caption: data['caption'] ?? '',
+                  photoUrl: data['imageUrl'] ?? '',
+                  createdAt: data['createdAt'],
+                  likes: data['likes'] ?? [],
+                  avatarUrl: data['profileImageUrl'] ?? '',
+                );
+              },
+            );
+          },
+        ),
       )
 
         );

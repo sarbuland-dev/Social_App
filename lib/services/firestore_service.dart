@@ -30,6 +30,7 @@ class FirestoreService {
       // 0. Current user ka username fetch karo (feed mein dikhane ke liye)
       Map<String, dynamic>? userData = await getUserData();
       String username = userData?['username'] ?? 'Unknown';
+      String profileImageUrl = userData?['profileImageUrl'] ?? '';
 
       // 1. Image ko Cloudinary pe upload karo (Firebase Storage ki jagah)
       String imageUrl = await CloudinaryService.uploadImage(file);
@@ -41,6 +42,7 @@ class FirestoreService {
         'username': username,
         'imageUrl': imageUrl,
         'caption': caption,
+        'profileImageUrl': profileImageUrl,
         'likes': [],
         'createdAt': Timestamp.now(),
       });
@@ -71,4 +73,56 @@ class FirestoreService {
       });
     }
   }
+
+
+
+//   Delete function
+  Future<void> deletePost(String postId) async {
+    await _db.collection('posts').doc(postId).delete();
+  }
+
+
+
+//   block
+  Future<void> blockUser(String blockedUid) async {
+    String uid = getCurrentUid()!;
+
+    // Batch use kar rahe hain taake dono updates ek sath (atomically) hon
+    WriteBatch batch = _db.batch();
+
+    DocumentReference myDoc = _db.collection('users').doc(uid);
+    DocumentReference theirDoc = _db.collection('users').doc(blockedUid);
+
+    batch.update(myDoc, {
+      'blockedUsers': FieldValue.arrayUnion([blockedUid]),
+    });
+
+    batch.update(theirDoc, {
+      'blockedBy': FieldValue.arrayUnion([uid]),
+    });
+
+    await batch.commit();
+  }
+
+  // Bonus: agar future me unblock feature chahiye ho
+  Future<void> unblockUser(String blockedUid) async {
+    String uid = getCurrentUid()!;
+
+    WriteBatch batch = _db.batch();
+
+    DocumentReference myDoc = _db.collection('users').doc(uid);
+    DocumentReference theirDoc = _db.collection('users').doc(blockedUid);
+
+    batch.update(myDoc, {
+      'blockedUsers': FieldValue.arrayRemove([blockedUid]),
+    });
+
+    batch.update(theirDoc, {
+      'blockedBy': FieldValue.arrayRemove([uid]),
+    });
+
+    await batch.commit();
+  }
+
+
 }
