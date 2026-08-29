@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:provider/provider.dart';
+import 'package:social_app/providers/user_prodiver.dart';
 import 'package:social_app/screens/auth/signup.dart';
 import 'package:social_app/services/firestore_service.dart';
 
@@ -15,25 +17,15 @@ class ProfileState extends State<Profile> {
 
   final FirestoreService _firestoreService = FirestoreService();
 
-  Map<String, dynamic>? userData;
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchUser();
-  }
-
-  fetchUser() async {
-    Map<String, dynamic>? data = await _firestoreService.getUserData();
-    print("USER DATA: $data");
-    setState(() {
-      userData = data;
-      isLoading = false;
-    });
-  }
-
-
+  // @override
+  // void initState() {
+  //   super.initState();
+  //
+  //   final uid = FirebaseAuth.instance.currentUser?.uid;
+  //   if (uid != null) {
+  //     context.read<UserProvider>().listenToUser(uid);
+  //   }
+  // }
 
   // to delete
   void _showPostOptions(String postId) {
@@ -54,8 +46,8 @@ class ProfileState extends State<Profile> {
                   style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
                 ),
                 onTap: () {
-                  Navigator.pop(context);        // pehle bottom sheet band karo
-                  _confirmDelete(postId);          // phir confirmation dialog dikhao
+                  Navigator.pop(context);
+                  _confirmDelete(postId);
                 },
               ),
               ListTile(
@@ -104,6 +96,7 @@ class ProfileState extends State<Profile> {
 
   // signout
   signout()async{
+    context.read<UserProvider>().clear();
     await FirebaseAuth.instance.signOut();
     Navigator.push(context, MaterialPageRoute(builder:(context)=> SignupScreen()));
   }
@@ -131,8 +124,10 @@ class ProfileState extends State<Profile> {
                   style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
                 ),
                 onTap: () {
-                  Navigator.pop(context);        // pehle bottom sheet band karo
-                  _confirmSignout();          // phir confirmation dialog dikhao
+
+                  Navigator.pop(context);
+                  _confirmSignout();
+
                 },
               ),
               ListTile(
@@ -167,7 +162,7 @@ class ProfileState extends State<Profile> {
             ),
             TextButton(
               onPressed: ()  {
-                Get.to(signout());
+                Navigator.push(context, MaterialPageRoute(builder:(context)=> SignupScreen()));
 
               },
               child: Text("SignOut", style: TextStyle(color: Colors.red)),
@@ -181,13 +176,18 @@ class ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
 
+
+    final userProvider = context.watch<UserProvider>();
+    final userData = userProvider.userData;
+
     String uid = FirebaseAuth.instance.currentUser!.uid;
     String fullName =
     "${userData?['firstname'] ?? ''} ${userData?['lastname'] ?? ''}".trim();
     String username = userData?['username'] ?? '';
     String photoUrl = userData?['profileImageUrl'] ?? '';
+    String bio = userData?['bio'] ?? '';
 
-    if (isLoading) {
+    if (userProvider.isLoading) {
       return Scaffold(
         backgroundColor: Colors.black,
         body: Center(child: CircularProgressIndicator(color: Colors.white)),
@@ -348,13 +348,18 @@ class ProfileState extends State<Profile> {
               ),
               SizedBox(height: 20),
               Align(
-                alignment: AlignmentGeometry.centerLeft,
-                child: Container(
-                  height: 80,
-                  width: double.infinity,
-                  color: Colors.grey,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  bio.isNotEmpty ? bio : "No bio yet",
+                  style: TextStyle(
+                    color: bio.isNotEmpty ? Colors.white : Colors.white38,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
                 ),
               ),
+
+
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -393,8 +398,7 @@ class ProfileState extends State<Profile> {
                     .orderBy('createdAt', descending: true)
                     .snapshots(),
                 builder: (context, snapshot) {
-                  // 👇 Debug ke liye: agar Firestore index wagera ki wajah se
-                  // error aaye to yahan saaf dikh jaye ga, "No posts yet" chup nahi rahe ga
+
                   if (snapshot.hasError) {
                     return Padding(
                       padding: EdgeInsets.only(top: 40),
@@ -443,7 +447,7 @@ class ProfileState extends State<Profile> {
 
                       return GestureDetector(
                         onTap: () {
-                          // yahan chaho to post detail screen pe navigate kar sakte ho
+
                         },
                         onLongPress: () => _showPostOptions(postId),
                         child: Image.network(
@@ -472,4 +476,3 @@ class ProfileState extends State<Profile> {
     );
   }
 }
-

@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:social_app/screens/home/home.dart';
 import 'package:social_app/screens/post/post_crop.dart';
 import 'package:social_app/services/firestore_service.dart';
+import 'package:lottie/lottie.dart';
+import 'package:social_app/widgets/bootomsheet_widget.dart';
 
 class Postscreen extends StatefulWidget{
   @override
@@ -18,8 +20,7 @@ class PostscreenState extends State<Postscreen> {
 
   TextEditingController caption=TextEditingController();
 
-  // PageView control karne ke liye controller
-  // isi se hum programmatically page change karenge (swipe se nahi)
+
   final PageController _pageController = PageController();
 
 
@@ -36,20 +37,6 @@ class PostscreenState extends State<Postscreen> {
   }
 
 
-  showSnackBar(String content, BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(content),
-      ), // SnackBar
-    );
-  }
-
-
-
-
-
-
-
   Uint8List? file;
   selectImage(BuildContext context) async {
     return showDialog(
@@ -64,7 +51,7 @@ class PostscreenState extends State<Postscreen> {
               onPressed: () async {
                 Navigator.of(context).pop();
                 Uint8List? pickedfile = await pickImage(ImageSource.camera);
-                await _openCropScreen(pickedfile); // pehle crop screen khulega
+                await _openCropScreen(pickedfile);
               },
             ),
             SimpleDialogOption(
@@ -73,7 +60,7 @@ class PostscreenState extends State<Postscreen> {
               onPressed: () async {
                 Navigator.of(context).pop();
                 Uint8List? pickedfile = await pickImage(ImageSource.gallery);
-                await _openCropScreen(pickedfile); // pehle crop screen khulega
+                await _openCropScreen(pickedfile);
               },
             ),
             SimpleDialogOption(
@@ -92,8 +79,6 @@ class PostscreenState extends State<Postscreen> {
     );
   }
 
-  // Naya function: picked image ko crop screen mein bhejta hai
-  // aur cropped result ko `file` mein set karta hai
   Future<void> _openCropScreen(Uint8List? pickedfile) async {
     if (pickedfile == null) return;
 
@@ -108,11 +93,10 @@ class PostscreenState extends State<Postscreen> {
       setState(() {
         file = croppedBytes;
       });
-      // image select ho gayi -> ab code se hi (bina swipe ke) 2nd page pe le jao
+
       _pageController.jumpToPage(1);
     }
-    // agar user ne crop screen se "cancel" (X) dabaya, to croppedBytes null
-    // hoga aur `file` set nahi hoga, page bhi change nahi hoga
+
   }
 
 
@@ -121,7 +105,14 @@ class PostscreenState extends State<Postscreen> {
 
   postImage() async {
     if (file == null) {
-      showSnackBar("Pehle image select karo", context);
+
+      showMessageSheet(
+        context,
+        icon: Icons.image_outlined,
+        iconColor: Colors.orange,
+        title: "First Select Your Image",
+        message: "First Select Your Image !.",
+      );
       return;
     }
 
@@ -134,15 +125,34 @@ class PostscreenState extends State<Postscreen> {
       caption.text,
     );
 
+    if (!mounted) return;
+
     setState(() {
       isPosting = false;
     });
 
     if (result == "success") {
-      showSnackBar("Post ho gayi!", context);
+
+
+      await showMessageSheet(
+        context,
+        icon: Icons.check,
+        iconColor: Colors.green,
+
+
+        title: "Posted!!",
+        message: "Your post has been shared successfully.",
+      );
       Get.back();
     } else {
-      showSnackBar(result, context);
+
+      showMessageSheet(
+        context,
+        icon: Icons.error_outline,
+        iconColor: Colors.red,
+        title: "Failed to post.",
+        message: "Failed to post.",
+      );
     }
   }
 
@@ -158,8 +168,6 @@ class PostscreenState extends State<Postscreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      // AppBar sirf tabhi dikhega jab file select ho chuki ho (2nd page pe),
-      // pehle page pe koi appbar nahi tha, wahi behavior maintain kiya hai
       appBar: file == null
           ? null
           : AppBar(
@@ -210,8 +218,7 @@ class PostscreenState extends State<Postscreen> {
       ),
       body: PageView(
         controller: _pageController,
-        // Yahi line swipe ko band karti hai — user ungli se page change
-        // nahi kar sakta, sirf code se (jumpToPage) hi page badlega
+
         physics: NeverScrollableScrollPhysics(),
         children: [
           // ---------- PAGE 1: Image select karne wala part ----------
@@ -220,7 +227,7 @@ class PostscreenState extends State<Postscreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // Heading text - upload button ke upar
+
                   ShaderMask(
                     shaderCallback: (bounds) {
                       return const LinearGradient(
@@ -241,23 +248,23 @@ class PostscreenState extends State<Postscreen> {
                   SizedBox(
                     height: 20,
                   ),
-                  // Chota sa slogan - gradient text
+
 
                   Text(
-                        "Snap it. Share it. Vibe it.",
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.agbalumo(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
+                    "Snap it. Share it. Vibe it.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.agbalumo(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
 
 
                   SizedBox(
                     height: 15,
                   ),
-                  // Instruction line - user ko batata hai ke button tap karna hai
+
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 25),
                     child: Text(
@@ -273,7 +280,7 @@ class PostscreenState extends State<Postscreen> {
                     height: 30,
                   ),
                   Container(
-                    padding: EdgeInsets.all(2), // ye border ki "thickness" hai
+                    padding: EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
@@ -322,7 +329,7 @@ class PostscreenState extends State<Postscreen> {
                   AspectRatio(
                     aspectRatio: 1,
                     child: Container(
-                      padding: EdgeInsets.all(1), // ye border ki "thickness" hai
+                      padding: EdgeInsets.all(1),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         gradient: LinearGradient(
@@ -337,7 +344,7 @@ class PostscreenState extends State<Postscreen> {
                             borderRadius: BorderRadius.circular(10),
                             color: Colors.black87),
                         child: file == null
-                            ? SizedBox() // safety fallback, is page pe file null nahi hogi
+                            ? SizedBox()
                             : ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Image.memory(file!,
@@ -349,7 +356,7 @@ class PostscreenState extends State<Postscreen> {
                     height: 40,
                   ),
                   Container(
-                    padding: EdgeInsets.all(2), // ye border ki "thickness" hai
+                    padding: EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       gradient: LinearGradient(
@@ -389,6 +396,3 @@ class PostscreenState extends State<Postscreen> {
 }
 
 
-
-
-// Text("Post",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 20)),

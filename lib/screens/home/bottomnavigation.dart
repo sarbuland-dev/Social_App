@@ -1,10 +1,8 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
-
 import 'package:social_app/screens/home/home.dart';
-import 'package:social_app/screens/home/profile.dart';
 import 'package:social_app/screens/home/search.dart';
+import 'package:social_app/screens/home/profile.dart';
 
 class BottomNav extends StatefulWidget {
   @override
@@ -18,6 +16,7 @@ class BottomNavState extends State<BottomNav> {
     Homescreen(),
     Search(),
     Profile()
+
   ];
 
   @override
@@ -40,7 +39,7 @@ class BottomNavState extends State<BottomNav> {
                 padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
 
                   child:Container(
-                    padding: EdgeInsets.all(0), // ye border ki "thickness" hai
+                    padding: EdgeInsets.all(0),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(40),
                       gradient: LinearGradient(
@@ -50,8 +49,8 @@ class BottomNavState extends State<BottomNav> {
                       ),
                     ),
                     child: Container(
-                      height: 70,
-                      width: 300,
+                      height: 50,
+                      width: 280,
 
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(40),
@@ -94,69 +93,3 @@ class BottomNavState extends State<BottomNav> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//
-// extendBody: true,
-// body: IndexedStack(
-// index: currentindex,
-// children: pages,
-// ),
-// bottomNavigationBar: Container(
-// padding: const EdgeInsets.all(3), // gradient border ki "thickness"
-// decoration: BoxDecoration(
-// borderRadius: const BorderRadius.only(
-// topLeft: Radius.circular(25),
-// topRight: Radius.circular(25),
-// bottomLeft: Radius.circular(25),
-// bottomRight: Radius.circular(25)
-// ),
-// gradient: const LinearGradient(
-// colors: [Colors.green, Colors.blue],
-// begin: Alignment.topLeft,
-// end: Alignment.bottomRight,
-// ),
-// ),
-// child: ClipRRect(
-// borderRadius:  BorderRadius.only(
-// topLeft: Radius.circular(25), // outer se thora kam
-// topRight: Radius.circular(25),
-// bottomLeft: Radius.circular(25), // outer se thora kam
-// bottomRight: Radius.circular(25),
-// ),
-// child: SizedBox(
-// height: 100,
-// child: BottomNavigationBar(
-// backgroundColor: Colors.black87,
-//
-// selectedItemColor: Colors.white,
-// unselectedItemColor: Colors.blueGrey,
-// currentIndex: currentindex,
-// onTap: (index) {
-// setState(() {
-// currentindex = index;
-// });
-// },
-// items: const [
-// BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-// BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-// BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-// ],
-// ),
-// ),
-// ),
-// ),

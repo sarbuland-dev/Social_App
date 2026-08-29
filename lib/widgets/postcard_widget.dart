@@ -26,7 +26,7 @@ class postcard extends StatelessWidget {
     this.createdAt,
   });
 
-  // ✅ Timestamp ko "2h ago", "3d ago" jaisi readable string mein convert karta hai
+
   String _timeAgo(Timestamp? timestamp) {
     if (timestamp == null) return '';
 
@@ -53,13 +53,13 @@ class postcard extends StatelessWidget {
 
     final String? currentUid = FirebaseAuth.instance.currentUser?.uid;
     final bool isLiked = currentUid != null && likes.contains(currentUid);
-    final bool isOwnPost = currentUid != null && currentUid == uid; // 👈 apni post check
+    final bool isOwnPost = currentUid != null && currentUid == uid;
 
     return Container(
       color: Colors.black,
       padding: EdgeInsets.symmetric(vertical: 10),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // ✅ sab kuch left se start ho
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             margin: EdgeInsets.only(right: 10, left: 10),
@@ -103,8 +103,7 @@ class postcard extends StatelessWidget {
                       style: TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ),
-                  // 👇 3-dot menu sirf tab dikhta hai jab ye post apni na ho —
-                  // apni post pe block/report karne ka koi matlab nahi
+
                   isOwnPost
                       ? SizedBox.shrink()
                       : Padding(
@@ -127,8 +126,6 @@ class postcard extends StatelessWidget {
             height: 10,
           ),
 
-          // ✅ image + double-tap like animation + like button + count
-          // (comment/share icons "trailing" ke through isi row mein add kiye hain)
           LikeSection(
             postId: postId,
             key: ValueKey(postId),
@@ -160,139 +157,160 @@ class postcard extends StatelessWidget {
 
           SizedBox(height: 8),
 
-          // Caption — left aligned, more/less button caption ke saath usi line pe
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: StatefulBuilder(
-              builder: (context, setLocalState) {
-                bool isExpanded = false;
-                return StatefulBuilder(
-                  builder: (context, setLocalState2) {
-                    final timeWidget = Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        _timeAgo(createdAt),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white38,
+            child: Builder(
+              builder: (context) {
+                final timeWidget = Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    _timeAgo(createdAt),
+                    style: const TextStyle(fontSize: 12, color: Colors.white38),
+                  ),
+                );
+
+
+                if (caption.trim().isEmpty) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text.rich(
+                        TextSpan(
+                          text: "$username  ",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                          children: const [
+                            TextSpan(
+                              text: "No caption",
+                              style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontStyle: FontStyle.italic,
+                                fontSize: 14,
+                                color: Colors.white38,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    );
+                      timeWidget,
+                    ],
+                  );
+                }
 
-                    // ✅ Caption khali hai to "more"/"less" bilkul na dikhe, sirf "No caption"
-                    if (caption.trim().isEmpty) {
+                final captionText = TextSpan(
+                  text: "$username  ",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: caption,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.normal,
+                        fontSize: 14,
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ],
+                );
+
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+
+                    final tp = TextPainter(
+                      text: captionText,
+                      maxLines: 1,
+                      textDirection: TextDirection.ltr,
+                    )..layout(maxWidth: constraints.maxWidth);
+                    final bool isOverflowing = tp.didExceedMaxLines;
+
+                    if (!isOverflowing) {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text.rich(
-                            TextSpan(
-                              text: "$username  ",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.white,
-                              ),
-                              children: const [
-                                TextSpan(
-                                  text: "No caption",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: 14,
-                                    color: Colors.white38,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          Text.rich(captionText),
                           timeWidget,
                         ],
                       );
                     }
 
-                    final captionText = TextSpan(
-                      text: "$username  ",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: caption,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.normal,
-                            fontSize: 14,
-                            color: Colors.white54,
-                          ),
-                        ),
-                      ],
+                    return StatefulBuilder(
+                      builder: (context, _) {
+                        bool isExpanded = false;
+                        return StatefulBuilder(
+                          builder: (context, setLocalState) {
+                            if (!isExpanded) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text.rich(
+                                          captionText,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      GestureDetector(
+                                        onTap: () => setLocalState(() => isExpanded = true),
+                                        child: const Text(
+                                          "more",
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  timeWidget,
+                                ],
+                              );
+                            } else {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.end,
+                                    children: [
+                                      Text.rich(captionText),
+                                      const SizedBox(width: 6),
+                                      GestureDetector(
+                                        onTap: () => setLocalState(() => isExpanded = false),
+                                        child: const Text(
+                                          "less",
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  timeWidget,
+                                ],
+                              );
+                            }
+                          },
+                        );
+                      },
                     );
-
-                    if (!isExpanded) {
-                      // Collapsed: caption (1 line, truncated) + "more" usi line pe, right side
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text.rich(
-                                  captionText,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: () => setLocalState2(() => isExpanded = true),
-                                child: const Text(
-                                  "more",
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          timeWidget, // ✅ time caption ke neeche
-                        ],
-                      );
-                    } else {
-                      // Expanded: pura caption dikhega, "less" caption ke akhri word ke sath
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.end,
-                            children: [
-                              Text.rich(captionText),
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: () => setLocalState2(() => isExpanded = false),
-                                child: const Text(
-                                  "less",
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          timeWidget, // ✅ time caption ke neeche
-                        ],
-                      );
-                    }
                   },
                 );
               },
             ),
           ),
+
         ],
       ),
     );

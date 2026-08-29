@@ -1,14 +1,12 @@
 import 'dart:typed_data';
 import 'package:crop_your_image/crop_your_image.dart';
 import 'package:flutter/material.dart';
+import 'package:social_app/widgets/bootomsheet_widget.dart';
 
-/// ImageCropScreen: user ki pick ki hui image ko Instagram jaisa square
-/// crop + zoom/pan karne deta hai. "Done" dabane pe cropped image bytes
-/// wapis (Navigator.pop se) bhej deta hai.
 class ImageCropScreen extends StatefulWidget {
   final Uint8List imageBytes;
 
-  const ImageCropScreen({super.key, required this.imageBytes});
+  ImageCropScreen({super.key, required this.imageBytes});
 
   @override
   State<ImageCropScreen> createState() => _ImageCropScreenState();
@@ -20,7 +18,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
 
   void _onDonePressed() {
     setState(() => _isCropping = true);
-    _cropController.crop(); // ✅ ye crop widget ke onCropped callback ko trigger karega
+    _cropController.crop();
   }
 
   @override
@@ -31,7 +29,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
         backgroundColor: Colors.black,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context), // cancel — koi image nahi bhejta
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           "Move and Scale",
@@ -83,9 +81,8 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
           maskColor: Colors.black.withOpacity(0.65),
           radius: 0,
           interactive: true,
-          fixCropRect: true,                              // 👈 add karo — box fix rahega, sirf image move/zoom hogi
-          cornerDotBuilder: (size, edgeAlignment) =>
-          const SizedBox.shrink(),                     // 👈 add karo — dots hide ho jayen ge
+          fixCropRect: true,
+          cornerDotBuilder: (size, edgeAlignment) => const SizedBox.shrink(),
           progressIndicator: const CircularProgressIndicator(color: Colors.purple),
           onCropped: (CropResult result) {
             switch (result) {
@@ -93,9 +90,16 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
                 Navigator.pop(context, croppedImage);
               case CropFailure(:final cause):
                 setState(() => _isCropping = false);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Crop fail ho gaya: $cause")),
+                showMessageSheet(
+                  context,
+                  icon: Icons.error_outline,
+                  iconColor: Colors.red,
+                  title: "Crop failed",
+                  message:"We are unable to crop due to an error",
                 );
+
+
+
             }
           },
         ),

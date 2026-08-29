@@ -28,7 +28,7 @@ class SheetState extends State<Sheet> {
           backgroundColor: Color(0xff293038),
           title: Text("Block ${widget.username}?", style: TextStyle(color: Colors.white)),
           content: Text(
-            "Block karne ke baad na tum inki posts dekh paoge, na wo tumhari.",
+            "After blocking, you won't be able to see their posts, and they won't be able to see yours..",
             style: TextStyle(color: Colors.white70),
           ),
           actions: [
@@ -52,59 +52,56 @@ class SheetState extends State<Sheet> {
 
   @override
   Widget build(BuildContext context) {
-    // 👇 SELF-BLOCK PREVENTION:
-    // Agar ye post/profile khud logged-in user ka hai (posterUid == currentUserId),
-    // to "Block This User" option dikhaya hi nahi jaye ga — taake user khud ko
-    // block na kar sake. Yahi check "Unfollow" pe bhi laga diya hai (khud ko
-    // unfollow karna bhi mana nahi karta but logically valid nahi hota).
     final bool isOwnPost = currentUserId != null && currentUserId == widget.posterUid;
 
     return Container(
-      height: MediaQuery.of(context).size.height / 3.5,
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Colors.grey,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
+        color: Color(0xff293038),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (!isOwnPost)   // 👈 sirf tab dikhao jab apni post na ho
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: GestureDetector(
-                onTap: () {},
-                child: Text(
-                  "Unfollow ${widget.username}",
-                  style: const TextStyle(fontSize: 20, color: Colors.red),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isOwnPost)
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: Text(
+                      "Unfollow ${widget.username}",
+                      style: const TextStyle(fontSize: 20, color: Colors.red),
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: GestureDetector(
+                  onTap: () {},
+                  child: const Text(
+                    "Report This Post",
+                    style: TextStyle(fontSize: 20, color: Colors.red),
+                  ),
                 ),
               ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: GestureDetector(
-              onTap: () {},
-              child: const Text(
-                "Report This Post",
-                style: TextStyle(fontSize: 20, color: Colors.red),
-              ),
-            ),
+              if (!isOwnPost)
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: GestureDetector(
+                    onTap: _confirmBlock,
+                    child: const Text(
+                      "Block This User",
+                      style: TextStyle(fontSize: 20, color: Colors.red),
+                    ),
+                  ),
+                ),
+            ],
           ),
-          if (!isOwnPost)   // 👈 sirf tab dikhao jab apni post na ho — SELF-BLOCK FIX
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: GestureDetector(
-                onTap: _confirmBlock,
-                child: const Text(
-                  "Block This User",
-                  style: TextStyle(fontSize: 20, color: Colors.red),
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }

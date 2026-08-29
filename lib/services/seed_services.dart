@@ -1,14 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// SeedService: app ko test karne ke liye 12 dummy posts (alag-alag random
-/// usernames ke sath) Firestore mein daal deta hai.
-///
-/// Use karne ka tareeqa (kahin bhi call kar sakte ho — button, initState, etc):
-///   await SeedService.seedDummyPostsIfNeeded();
-///
-/// Ek flag document ('meta/seedInfo') check karta hai taake dobara call karne
-/// pe posts duplicate na ho jayen. Agar jaan bujh kar dobara seed karwana ho,
-/// niche wala `forceSeed()` function use karo (flag ko ignore karta hai).
+
 class SeedService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -28,34 +20,33 @@ class SeedService {
   ];
 
   static final List<String> _captions = [
-    "Beautiful day out here! 🌤️",
-    "New setup, feeling great 🔥",
-    "Coffee and code ☕💻",
+    "Beautiful day out here!",
+    "New setup, feeling great",
+    "Coffee and code",
     "Weekend vibes",
     "Just another day",
-    "Loving this view 😍",
-    "Grind never stops 💪",
+    "Loving this view",
+    "Grind never stops",
     "Throwback to good times",
-    "Nature never disappoints 🌿",
+    "Nature never disappoints",
     "Simple things, big joy",
     "Late night thoughts",
-    "New beginnings ✨",
+    "New beginnings",
   ];
 
-  /// Sirf tab seed karta hai jab pehle kabhi seed nahi kiya gaya (flag check karta hai)
+
   static Future<void> seedDummyPostsIfNeeded() async {
     final flagDoc = _db.collection('meta').doc('seedInfo');
     final flagSnap = await flagDoc.get();
 
     if (flagSnap.exists && flagSnap.data()?['seeded'] == true) {
-      return; // pehle se seed ho chuka hai, dobara mat karo
+      return;
     }
 
     await _insertDummyData(flagDoc);
   }
 
-  /// Flag ko ignore kar ke zabardasti dobara seed karta hai
-  /// (testing ke dauran manually dubara data chahiye ho to)
+
   static Future<void> forceSeed() async {
     final flagDoc = _db.collection('meta').doc('seedInfo');
     await _insertDummyData(flagDoc);
@@ -69,7 +60,7 @@ class SeedService {
       final user = _dummyUsers[i];
       final postId = "dummy_post_${i + 1}";
 
-      // Dummy user document — taake block feature bhi in dummy users pe test ho sake
+
       batch.set(
         _db.collection('users').doc(user['uid']),
         {
@@ -92,12 +83,12 @@ class SeedService {
         'imageUrl': 'https://picsum.photos/seed/${user['uid']}/500/500',
         'caption': _captions[i],
         'likes': [],
-        // 👇 alag-alag timestamps taake feed mein variety dikhe
+
         'createdAt': Timestamp.fromDate(now.subtract(Duration(hours: i * 3))),
       });
     }
 
-    // Flag set karo taake seedDummyPostsIfNeeded() dobara na chale
+
     batch.set(flagDoc, {'seeded': true, 'seededAt': Timestamp.now()});
 
     await batch.commit();

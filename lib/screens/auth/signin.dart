@@ -2,11 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:social_app/screens/auth/forgetpassword.dart';
 import 'package:social_app/utils/loading_dialog.dart';
 import 'package:social_app/utils/validators.dart';
 import 'package:social_app/screens/auth/signup.dart';
 import 'package:social_app/app/wrapper.dart';
+import 'package:social_app/widgets/bootomsheet_widget.dart';
 
 class Signinscreen extends StatefulWidget {
   @override
@@ -45,11 +47,23 @@ class _SigninscreenState extends State<Signinscreen> {
 
     } on FirebaseAuthException catch (e) {
       hideLoadingDialog(context);
-      Get.snackbar('error msg', e.code);
+      showMessageSheet(
+        context,
+        icon: Icons.error_outline,
+        iconColor: Colors.red,
+        title: "Login failed",
+        message: e.code,
+      );
 
     } catch (e) {
       hideLoadingDialog(context);
-      Get.snackbar('error msg', e.toString());
+      showMessageSheet(
+        context,
+        icon: Icons.error_outline,
+        iconColor: Colors.red,
+        title: "Login failed",
+        message: e.toString()
+      );
     }
   }
 
@@ -71,9 +85,7 @@ class _SigninscreenState extends State<Signinscreen> {
                 height: 100,
               ),
 
-              // =========================
-              // VIBELY
-              // =========================
+
 
               ShaderMask(
                 shaderCallback: (bounds) {
@@ -101,9 +113,7 @@ class _SigninscreenState extends State<Signinscreen> {
                 height: 10,
               ),
 
-              // =========================
-              // ENTER YOUR
-              // =========================
+
 
               Text(
                 "Enter Your",
@@ -113,9 +123,7 @@ class _SigninscreenState extends State<Signinscreen> {
                 ),
               ),
 
-              // =========================
-              // GMAIL & PASSWORD
-              // =========================
+
 
               ShaderMask(
                 shaderCallback: (bounds) {
@@ -143,9 +151,6 @@ class _SigninscreenState extends State<Signinscreen> {
                 height: 20,
               ),
 
-              // =========================
-              // LOGIN BOX
-              // =========================
 
               Container(
                 padding: const EdgeInsets.all(1),
@@ -176,9 +181,7 @@ class _SigninscreenState extends State<Signinscreen> {
                   child: Column(
                     children: [
 
-                      // =========================
-                      // GMAIL
-                      // =========================
+
 
                       const Text(
                         'Enter your Gmail',
@@ -250,9 +253,7 @@ class _SigninscreenState extends State<Signinscreen> {
                         height: 30,
                       ),
 
-                      // =========================
-                      // PASSWORD
-                      // =========================
+
 
                       const Text(
                         'Enter your Password',
@@ -311,7 +312,7 @@ class _SigninscreenState extends State<Signinscreen> {
                               size: 15,
                             ),
 
-                            // 👁 SHOW / HIDE PASSWORD
+
                             suffixIcon: IconButton(
                               onPressed: () {
                                 setState(() {
@@ -349,13 +350,18 @@ class _SigninscreenState extends State<Signinscreen> {
                 height: 15,
               ),
 
-              // =========================
-              // FORGET PASSWORD
-              // =========================
+
 
               GestureDetector(
                 onTap: () {
-                  Get.to(() => Forgetpassword());
+                  Navigator.push(
+                    context,
+                    PageTransition(
+                      type: PageTransitionType.rightToLeft,
+                      child: Forgetpassword(),
+                      duration: Duration(milliseconds: 400),
+                    ),
+                  );
                 },
 
                 child: const Text(
@@ -373,9 +379,7 @@ class _SigninscreenState extends State<Signinscreen> {
                 height: 40,
               ),
 
-              // =========================
-              // BACK + LOGIN
-              // =========================
+
 
               Row(
                 mainAxisAlignment:
@@ -383,18 +387,19 @@ class _SigninscreenState extends State<Signinscreen> {
 
                 children: [
 
-                  // =========================
-                  // BACK BUTTON
-                  // =========================
+
 
                   GestureDetector(
                     onTap: () {
-                      Get.to(
-                            () => SignupScreen(),
-                        transition: Transition.fadeIn,
-                        duration:
-                        const Duration(milliseconds: 400),
+                      Navigator.push(
+                        context,
+                        PageTransition(
+                          type: PageTransitionType.rightToLeft,
+                          child: SignupScreen(),
+                          duration: Duration(milliseconds: 400),
+                        ),
                       );
+
                     },
 
                     child: Container(
@@ -455,13 +460,18 @@ class _SigninscreenState extends State<Signinscreen> {
                     ),
                   ),
 
-                  // =========================
-                  // LOGIN BUTTON
-                  // =========================
+
 
                   GestureDetector(
                     onTap: () {
-                      signin();
+                      Navigator.push(
+                        context,
+                        PageTransition(
+                          type: PageTransitionType.rightToLeft,
+                          child: signin(),
+                          duration: Duration(milliseconds: 400),
+                        ),
+                      );
                     },
 
                     child: Container(

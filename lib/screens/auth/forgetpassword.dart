@@ -1,12 +1,13 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:social_app/utils/loading_dialog.dart';
 import 'package:social_app/screens/auth/signin.dart';
 import 'package:social_app/utils/validators.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:social_app/widgets/bootomsheet_widget.dart';
 class Forgetpassword extends StatefulWidget{
   @override
   State<StatefulWidget> createState() => _ForgetpasswordState();
@@ -33,17 +34,109 @@ class _ForgetpasswordState extends State<Forgetpassword> {
 
 
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-          email: forget_gmail.text);
+      final email = forget_gmail.text.trim();
+
+
+      final snap = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .get();
+
+      if (snap.docs.isEmpty) {
+        hideLoadingDialog(context);
+        showMessageSheet(
+          context,
+          icon: Icons.error_outline,
+          iconColor: Colors.red,
+          title: "No account found",
+          message: "Is email se koi account register nahi hai.",
+        );
+        return;
+      }
+
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       hideLoadingDialog(context);
-      // Navigator.push(context, MaterialPageRoute(builder:(context)=> Homescreen()));
+
+      showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Container(
+            padding: const EdgeInsets.all(25),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                const Icon(
+                  Icons.mark_email_read_outlined,
+                  color: Colors.green,
+                  size: 60,
+                ),
+
+                const SizedBox(height: 15),
+
+                const Text(
+                  "Reset Link Sent!",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                Text(
+                  "We've sent a password reset link to\n${forget_gmail.text}",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                const Text(
+                  "Please check your inbox and follow the link to reset your password.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("OK"),
+                ),
+
+                const SizedBox(height: 10),
+              ],
+            ),
+          );
+        },
+      );
 
     } on FirebaseAuthException catch (e) {
       hideLoadingDialog(context);
-      Get.snackbar('error msg', e.code);
+      showMessageSheet(
+        context,
+        icon: Icons.error_outline,
+        iconColor: Colors.red,
+        title: "Login failed",
+        message: e.code,
+      );
     } catch (e) {
       hideLoadingDialog(context);
-      Get.snackbar('error msg', e.toString());
+      showMessageSheet(
+        context,
+        icon: Icons.error_outline,
+        iconColor: Colors.red,
+        title: "Login failed",
+        message: e.toString(),
+      );
     }
   }
 
@@ -65,9 +158,6 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                 height: 100,
               ),
 
-              // =========================
-              // VIBELY
-              // =========================
 
               ShaderMask(
                 shaderCallback: (bounds) {
@@ -96,11 +186,9 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                 height: 10,
               ),
 
-              // =========================
-              // ENTER YOUR
-              // =========================
 
-               Text(
+
+              Text(
                 "Enter Your",
 
                 style: GoogleFonts.cherryCreamSoda(
@@ -109,9 +197,6 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                 ),
               ),
 
-              // =========================
-              // RESET PASSWORD
-              // =========================
 
               ShaderMask(
                 shaderCallback: (bounds) {
@@ -140,9 +225,7 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                 height: 20,
               ),
 
-              // =========================
-              // GMAIL BOX
-              // =========================
+
 
               Container(
                 padding: const EdgeInsets.all(1),
@@ -174,10 +257,6 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                   child: Column(
                     children: [
 
-                      // =========================
-                      // GMAIL TEXT
-                      // =========================
-
                       const Text(
                         'Enter your Gmail',
 
@@ -191,9 +270,7 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                         height: 10,
                       ),
 
-                      // =========================
-                      // GMAIL TEXTFIELD
-                      // =========================
+
 
                       SizedBox(
                         width: 300,
@@ -274,9 +351,7 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                 height: 20,
               ),
 
-              // =========================
-              // BACK + RESET BUTTON
-              // =========================
+
 
               Row(
                 mainAxisAlignment:
@@ -284,23 +359,18 @@ class _ForgetpasswordState extends State<Forgetpassword> {
 
                 children: [
 
-                  // =========================
-                  // BACK BUTTON
-                  // =========================
 
                   GestureDetector(
                     onTap: () {
-                      Get.to(
-                            () => Signinscreen(),
-
-                        transition:
-                        Transition.fadeIn,
-
-                        duration:
-                        const Duration(
-                          milliseconds: 400,
+                      Navigator.push(
+                        context,
+                        PageTransition(
+                          type: PageTransitionType.rightToLeft, // Transition ki type
+                          child: Signinscreen(),                  // Jiss page par jana hai
+                          duration: Duration(milliseconds: 400), // Speed control
                         ),
                       );
+
                     },
 
                     child: Container(
@@ -370,9 +440,7 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                     ),
                   ),
 
-                  // =========================
-                  // RESET BUTTON
-                  // =========================
+
 
                   GestureDetector(
                     onTap: () {
