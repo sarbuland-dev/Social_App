@@ -1,12 +1,13 @@
 import 'dart:typed_data';
 import 'package:crop_your_image/crop_your_image.dart';
 import 'package:flutter/material.dart';
-import 'package:social_app/widgets/bootomsheet_widget.dart';
+import 'package:social_app/widgets/bottomsheet_widget.dart';
 
 class ImageCropScreen extends StatefulWidget {
+
   final Uint8List imageBytes;
 
-  ImageCropScreen({super.key, required this.imageBytes});
+  const ImageCropScreen({super.key, required this.imageBytes});
 
   @override
   State<ImageCropScreen> createState() => _ImageCropScreenState();
@@ -78,7 +79,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
           aspectRatio: 1,
           withCircleUi: false,
           baseColor: Colors.black,
-          maskColor: Colors.black.withOpacity(0.65),
+          maskColor: Colors.black.withValues(alpha:0.65),
           radius: 0,
           interactive: true,
           fixCropRect: true,
@@ -88,7 +89,7 @@ class _ImageCropScreenState extends State<ImageCropScreen> {
             switch (result) {
               case CropSuccess(:final croppedImage):
                 Navigator.pop(context, croppedImage);
-              case CropFailure(:final cause):
+              case CropFailure():
                 setState(() => _isCropping = false);
                 showMessageSheet(
                   context,

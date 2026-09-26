@@ -1,10 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 void showLoadingDialog(BuildContext context) {
-  Get.dialog(
-    BackdropFilter(
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    barrierColor: Colors.black.withValues(alpha: 0.2),
+    builder: (context) => BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
       child: const Center(
         child: CircularProgressIndicator(
@@ -13,13 +15,10 @@ void showLoadingDialog(BuildContext context) {
         ),
       ),
     ),
-    barrierDismissible: false,
-    barrierColor: Colors.black.withOpacity(0.2),
   );
 }
 
 void hideLoadingDialog(BuildContext context) {
-  if (Get.isDialogOpen ?? false) {
-    Get.back();
-  }
+  if (!context.mounted) return;
+  Navigator.of(context, rootNavigator: true).pop();
 }

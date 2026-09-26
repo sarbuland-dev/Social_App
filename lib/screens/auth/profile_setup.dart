@@ -1,16 +1,17 @@
 import 'dart:typed_data';
 import 'package:animate_do/animate_do.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:social_app/screens/post/post_crop.dart';
 import 'package:social_app/services/cloudinary_services.dart';
-import 'package:social_app/widgets/bootomsheet_widget.dart';
-
+import 'package:social_app/services/firestore_service.dart';
+import 'package:social_app/widgets/bottomsheet_widget.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
+  const ProfileSetupScreen({super.key});
+
   @override
   State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
 }
@@ -29,15 +30,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     super.dispose();
   }
 
-  pickImage(ImageSource source) async {
+  Future<Uint8List?> pickImage(ImageSource source) async {
     final ImagePicker imagePicker = ImagePicker();
     XFile? file = await imagePicker.pickImage(source: source);
     if (file != null) {
       return await file.readAsBytes();
     }
+    return null;
   }
 
-  selectProfileImage(BuildContext context) async {
+  Future<void> selectProfileImage(BuildContext context) async {
     return showDialog(
       context: context,
       builder: (context) {
@@ -83,13 +85,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       ),
     );
 
+    if (!mounted) return;
+
     if (croppedBytes != null) {
       setState(() {
         profileImage = croppedBytes;
       });
     }
   }
-
 
   void _goToBioPage() {
     _pageController.animateToPage(
@@ -98,7 +101,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       curve: Curves.easeInOut,
     );
   }
-
 
   Future<void> _finishSetup({String? bio}) async {
     setState(() {
@@ -112,7 +114,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         'profileSetupDone': true,
       };
 
-      // Agar photo select ki thi to Cloudinary pe upload karo
       if (profileImage != null) {
         String url = await CloudinaryService.uploadImage(profileImage!);
         updateData['profileImageUrl'] = url;
@@ -122,13 +123,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         updateData['bio'] = bio.trim();
       }
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .set(updateData, SetOptions(merge: true));
-
+      await FirestoreService().updateUserProfile(uid, updateData);
 
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isSaving = false;
       });
@@ -139,8 +137,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         title: "Profile SetUp failed",
         message: e.toString(),
       );
-
-
     }
   }
 
@@ -261,14 +257,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ),
               ),
             ),
-            SizedBox(
-              height: 30,
-            ),
-            // ---------------- Skip (bio page pe jao) / Next buttons ----------------
+            SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Skip — photo ko ignore kar ke seedha bio page pe jata hai
                 GestureDetector(
                   onTap: _goToBioPage,
                   child: Padding(
@@ -279,7 +271,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ),
                   ),
                 ),
-                // Next — chahe photo select ki ho ya na ki ho, bio page pe le jata hai
                 GestureDetector(
                   onTap: _goToBioPage,
                   child: Container(
@@ -418,14 +409,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 30,
-              ),
-              // ---------------- Skip (feed dikhao) / Finish buttons ----------------
+              SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-
                   GestureDetector(
                     onTap: isSaving ? null : () => _finishSetup(bio: null),
                     child: Padding(
@@ -436,7 +423,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       ),
                     ),
                   ),
-
                   GestureDetector(
                     onTap: isSaving ? null : () => _finishSetup(bio: _bioController.text),
                     child: Container(

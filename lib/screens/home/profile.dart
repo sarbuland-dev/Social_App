@@ -1,14 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:provider/provider.dart';
-import 'package:social_app/providers/user_prodiver.dart';
+import 'package:social_app/providers/user_provider.dart';
 import 'package:social_app/screens/auth/signup.dart';
 import 'package:social_app/services/firestore_service.dart';
 
 class Profile extends StatefulWidget {
+  const Profile({super.key});
   @override
   State<Profile> createState() => ProfileState();
 }
@@ -16,16 +15,6 @@ class Profile extends StatefulWidget {
 class ProfileState extends State<Profile> {
 
   final FirestoreService _firestoreService = FirestoreService();
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //
-  //   final uid = FirebaseAuth.instance.currentUser?.uid;
-  //   if (uid != null) {
-  //     context.read<UserProvider>().listenToUser(uid);
-  //   }
-  // }
 
   // to delete
   void _showPostOptions(String postId) {
@@ -94,12 +83,7 @@ class ProfileState extends State<Profile> {
   }
 
 
-  // signout
-  signout()async{
-    context.read<UserProvider>().clear();
-    await FirebaseAuth.instance.signOut();
-    Navigator.push(context, MaterialPageRoute(builder:(context)=> SignupScreen()));
-  }
+
 
 
 
@@ -161,12 +145,20 @@ class ProfileState extends State<Profile> {
               child: Text("Cancel", style: TextStyle(color: Colors.white)),
             ),
             TextButton(
-              onPressed: ()  {
-                Navigator.push(context, MaterialPageRoute(builder:(context)=> SignupScreen()));
-
+              onPressed: () async {
+                Navigator.pop(context);
+                context.read<UserProvider>().clear();
+                await FirebaseAuth.instance.signOut();
+                if (!context.mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignupScreen()),
+                      (route) => false,
+                );
               },
               child: Text("SignOut", style: TextStyle(color: Colors.red)),
             ),
+
           ],
         );
       },
@@ -281,10 +273,8 @@ class ProfileState extends State<Profile> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 StreamBuilder<QuerySnapshot>(
-                                  stream: FirebaseFirestore.instance
-                                      .collection('posts')
-                                      .where('uid', isEqualTo: uid)
-                                      .snapshots(),
+                                  stream: FirestoreService().getUserPostsStream(uid),
+
                                   builder: (context, snapshot) {
                                     int count = snapshot.hasData ? snapshot.data!.docs.length : 0;
                                     return Text(
@@ -392,11 +382,8 @@ class ProfileState extends State<Profile> {
               ),
               SizedBox(height: 10),
               StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('posts')
-                    .where('uid', isEqualTo: uid)
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
+                stream: FirestoreService().getUserPostsStream(uid),
+
                 builder: (context, snapshot) {
 
                   if (snapshot.hasError) {

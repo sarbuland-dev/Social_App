@@ -1,29 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:social_app/providers/user_prodiver.dart';
+import 'package:social_app/providers/user_provider.dart';
 import 'package:social_app/screens/post/postscreen.dart';
-import 'package:get/get.dart';
+import 'package:social_app/services/firestore_service.dart';
 import 'package:social_app/widgets/postcard_widget.dart';
 
 
 class Homescreen extends StatefulWidget{
+  const Homescreen({super.key});
   @override
   State<StatefulWidget> createState() => HomescreenState();
 }
 class HomescreenState extends State<Homescreen>{
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //
-  //   final uid = FirebaseAuth.instance.currentUser?.uid;
-  //   if (uid != null) {
-  //     context.read<UserProvider>().listenToUser(uid);
-  //   }
-  // }
+
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +42,10 @@ class HomescreenState extends State<Homescreen>{
         ],
         leading: Padding(padding: EdgeInsetsGeometry.all(15),child:
         GestureDetector(
-          onTap: (){Get.to(() => Postscreen());},
+          onTap: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => Postscreen()));
+          },
+
           child: Image.asset('assets/pngs/camera.png',width: 30,height: 30,color: Colors.white,),
         ),),
         title: Center(
@@ -72,10 +67,8 @@ class HomescreenState extends State<Homescreen>{
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('posts')
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
+        stream: FirestoreService().getFeedStream(),
+
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -103,7 +96,7 @@ class HomescreenState extends State<Homescreen>{
             itemBuilder: (context, index) {
               final data = visiblePosts[index].data() as Map<String, dynamic>;
 
-              return postcard(
+              return PostCard(
                 key: ValueKey(data['postId']),
                 postId: data['postId'] ?? '',
                 uid: data['uid'] ?? '',

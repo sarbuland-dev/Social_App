@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:social_app/screens/auth/forgetpassword.dart';
@@ -8,27 +7,50 @@ import 'package:social_app/utils/loading_dialog.dart';
 import 'package:social_app/utils/validators.dart';
 import 'package:social_app/screens/auth/signup.dart';
 import 'package:social_app/app/wrapper.dart';
-import 'package:social_app/widgets/bootomsheet_widget.dart';
+import 'package:social_app/widgets/bottomsheet_widget.dart';
 
 class Signinscreen extends StatefulWidget {
+  const Signinscreen({super.key});
   @override
   State<StatefulWidget> createState() => _SigninscreenState();
 }
 
 class _SigninscreenState extends State<Signinscreen> {
 
-  TextEditingController signin_gmail = TextEditingController();
-  TextEditingController signin_password = TextEditingController();
+  TextEditingController signinGmail = TextEditingController();
+  TextEditingController signinPassword = TextEditingController();
 
   String? emailError;
   String? passwordError;
 
   bool obscurePassword = true;
 
-  signin() async {
+
+  String getAuthErrorMessage(String code) {
+    switch (code) {
+      case 'invalid-email':
+        return 'That email address is not valid.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'user-not-found':
+        return 'No account found with this email.';
+      case 'wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'invalid-credential':
+        return 'Incorrect email or password.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      case 'network-request-failed':
+        return 'Please check your internet connection.';
+      default:
+        return 'Login failed. Please try again.';
+    }
+  }
+
+  Future<void> signin() async {
     setState(() {
-      emailError = Validators.validateEmail(signin_gmail.text);
-      passwordError = Validators.validatePassword(signin_password.text);
+      emailError = Validators.validateEmail(signinGmail.text);
+      passwordError = Validators.validatePassword(signinPassword.text);
     });
 
     if (emailError != null || passwordError != null) return;
@@ -37,35 +59,49 @@ class _SigninscreenState extends State<Signinscreen> {
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: signin_gmail.text,
-        password: signin_password.text,
+        email: signinGmail.text,
+        password: signinPassword.text,
       );
 
+      if (!mounted) return;
       hideLoadingDialog(context);
 
-      Get.offAll(() => wrapper());
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => AuthWrapper()),
+            (route) => false,
+      );
 
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       hideLoadingDialog(context);
       showMessageSheet(
-        context,
-        icon: Icons.error_outline,
-        iconColor: Colors.red,
-        title: "Login failed",
-        message: e.code,
+          context,
+          icon: Icons.error_outline,
+          iconColor: Colors.red,
+          title: "Login failed",
+          message: getAuthErrorMessage(e.code)
       );
 
     } catch (e) {
+      if (!mounted) return;
       hideLoadingDialog(context);
       showMessageSheet(
-        context,
-        icon: Icons.error_outline,
-        iconColor: Colors.red,
-        title: "Login failed",
-        message: e.toString()
+          context,
+          icon: Icons.error_outline,
+          iconColor: Colors.red,
+          title: "Login failed",
+          message: e.toString()
       );
     }
   }
+
+
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +236,7 @@ class _SigninscreenState extends State<Signinscreen> {
                         width: 300,
 
                         child: TextField(
-                          controller: signin_gmail,
+                          controller: signinGmail,
 
                           style: const TextStyle(
                             color: Colors.white,
@@ -272,7 +308,7 @@ class _SigninscreenState extends State<Signinscreen> {
                         width: 300,
 
                         child: TextField(
-                          controller: signin_password,
+                          controller: signinPassword,
 
                           obscureText: obscurePassword,
 
@@ -461,18 +497,14 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
 
 
-
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        PageTransition(
-                          type: PageTransitionType.rightToLeft,
-                          child: signin(),
-                          duration: Duration(milliseconds: 400),
-                        ),
-                      );
+                      signin();
                     },
+
+
+
+
 
                     child: Container(
                       padding: const EdgeInsets.all(1),

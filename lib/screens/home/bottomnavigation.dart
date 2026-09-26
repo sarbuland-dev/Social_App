@@ -5,6 +5,7 @@ import 'package:social_app/screens/home/search.dart';
 import 'package:social_app/screens/home/profile.dart';
 
 class BottomNav extends StatefulWidget {
+  const BottomNav({super.key});
   @override
   State<StatefulWidget> createState() => BottomNavState();
 }

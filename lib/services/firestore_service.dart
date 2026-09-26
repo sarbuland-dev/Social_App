@@ -120,4 +120,40 @@ class FirestoreService {
     await batch.commit();
   }
 
+
+
+
+
+  Future<bool> checkEmailExists(String email) async {
+    final snap = await _db.collection('users').where('email', isEqualTo: email).get();
+    return snap.docs.isNotEmpty;
+  }
+
+  Future<bool> checkUsernameExists(String username) async {
+    final snap = await _db.collection('users').where('username', isEqualTo: username).get();
+    return snap.docs.isNotEmpty;
+  }
+
+  Future<void> createUserProfile(String uid, Map<String, dynamic> data) async {
+    await _db.collection('users').doc(uid).set(data);
+  }
+
+  Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
+    await _db.collection('users').doc(uid).set(data, SetOptions(merge: true));
+  }
+
+  Stream<QuerySnapshot> getUserPostsStream(String uid) {
+    return _db.collection('posts')
+        .where('uid', isEqualTo: uid)
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
+  Stream<QuerySnapshot> getFeedStream() {
+    return _db.collection('posts').orderBy('createdAt', descending: true).snapshots();
+  }
+
 }
+
+
+

@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_app/widgets/Like_animation.dart';
+import 'package:social_app/widgets/like_animation.dart';
 import 'package:social_app/widgets/modalbottomsheet.dart';
 
-class postcard extends StatelessWidget {
+class PostCard extends StatelessWidget {
   final String postId;
   final String username;
   final String uid;
@@ -14,7 +14,7 @@ class postcard extends StatelessWidget {
   final String avatarUrl;
   final List likes;
 
-  const postcard({
+  const PostCard({
     super.key,
     required this.postId,
     required this.username,

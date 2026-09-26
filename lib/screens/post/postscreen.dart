@@ -1,44 +1,37 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:social_app/screens/home/home.dart';
 import 'package:social_app/screens/post/post_crop.dart';
 import 'package:social_app/services/firestore_service.dart';
-import 'package:lottie/lottie.dart';
-import 'package:social_app/widgets/bootomsheet_widget.dart';
+import 'package:social_app/widgets/bottomsheet_widget.dart';
 
-class Postscreen extends StatefulWidget{
+class Postscreen extends StatefulWidget {
+  const Postscreen({super.key});
+
   @override
   State<StatefulWidget> createState() => PostscreenState();
-
-
-
 }
+
 class PostscreenState extends State<Postscreen> {
 
-  TextEditingController caption=TextEditingController();
-
+  TextEditingController caption = TextEditingController();
 
   final PageController _pageController = PageController();
 
+  Future<Uint8List?> pickImage(ImageSource source) async {
+    final ImagePicker imagePicker = ImagePicker();
 
+    XFile? pickedImage = await imagePicker.pickImage(source: source);
 
-  pickImage(ImageSource source) async {
-    final ImagePicker _imagePicker = ImagePicker();
-
-    XFile? _file = await _imagePicker.pickImage(source: source);
-
-    if (_file != null) {
-      return await _file.readAsBytes();
+    if (pickedImage != null) {
+      return await pickedImage.readAsBytes();
     }
-    print('No image selected');
+    return null;
   }
 
-
   Uint8List? file;
-  selectImage(BuildContext context) async {
+  Future<void> selectImage(BuildContext context) async {
     return showDialog(
       context: context,
       builder: (context) {
@@ -89,6 +82,8 @@ class PostscreenState extends State<Postscreen> {
       ),
     );
 
+    if (!mounted) return;
+
     if (croppedBytes != null) {
       setState(() {
         file = croppedBytes;
@@ -96,16 +91,13 @@ class PostscreenState extends State<Postscreen> {
 
       _pageController.jumpToPage(1);
     }
-
   }
-
 
   final FirestoreService _firestoreService = FirestoreService();
   bool isPosting = false;
 
-  postImage() async {
+  Future<void> postImage() async {
     if (file == null) {
-
       showMessageSheet(
         context,
         icon: Icons.image_outlined,
@@ -132,20 +124,17 @@ class PostscreenState extends State<Postscreen> {
     });
 
     if (result == "success") {
-
-
       await showMessageSheet(
         context,
         icon: Icons.check,
         iconColor: Colors.green,
-
-
         title: "Posted!!",
         message: "Your post has been shared successfully.",
       );
-      Get.back();
-    } else {
 
+      if (!mounted) return;
+      Navigator.pop(context);
+    } else {
       showMessageSheet(
         context,
         icon: Icons.error_outline,
@@ -163,7 +152,6 @@ class PostscreenState extends State<Postscreen> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,7 +162,7 @@ class PostscreenState extends State<Postscreen> {
         backgroundColor: Colors.black,
         leading: GestureDetector(
           onTap: () {
-            Get.back();
+            Navigator.pop(context);
           },
           child: Icon(
             Icons.arrow_back,
@@ -193,7 +181,7 @@ class PostscreenState extends State<Postscreen> {
               child: ShaderMask(
                   shaderCallback: (bounds) {
                     return const LinearGradient(
-                      colors: [Colors.green, Colors.blue], //
+                      colors: [Colors.green, Colors.blue],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ).createShader(bounds);
@@ -218,7 +206,6 @@ class PostscreenState extends State<Postscreen> {
       ),
       body: PageView(
         controller: _pageController,
-
         physics: NeverScrollableScrollPhysics(),
         children: [
           // ---------- PAGE 1: Image select karne wala part ----------
@@ -227,7 +214,6 @@ class PostscreenState extends State<Postscreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-
                   ShaderMask(
                     shaderCallback: (bounds) {
                       return const LinearGradient(
@@ -245,11 +231,7 @@ class PostscreenState extends State<Postscreen> {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: 20,
-                  ),
-
-
+                  SizedBox(height: 20),
                   Text(
                     "Snap it. Share it. Vibe it.",
                     textAlign: TextAlign.center,
@@ -259,12 +241,7 @@ class PostscreenState extends State<Postscreen> {
                       color: Colors.white,
                     ),
                   ),
-
-
-                  SizedBox(
-                    height: 15,
-                  ),
-
+                  SizedBox(height: 15),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 25),
                     child: Text(
@@ -276,9 +253,7 @@ class PostscreenState extends State<Postscreen> {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: 30,
-                  ),
+                  SizedBox(height: 30),
                   Container(
                     padding: EdgeInsets.all(2),
                     decoration: BoxDecoration(
@@ -294,7 +269,6 @@ class PostscreenState extends State<Postscreen> {
                       width: 100,
                       decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          // color: Color(0xff4b5459)
                           color: Colors.black87),
                       child: GestureDetector(
                         onTap: () => selectImage(context),
@@ -305,13 +279,11 @@ class PostscreenState extends State<Postscreen> {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: 20,
-                  ),
+                  SizedBox(height: 20),
                   GestureDetector(
-                    onTap: ()=>Homescreen(),
+                    onTap: () => Navigator.pop(context),
                     child: Center(
-                      child: Text('Cancel',style: TextStyle(color: Colors.red,fontSize: 15),),
+                      child: Text('Cancel', style: TextStyle(color: Colors.red, fontSize: 15)),
                     ),
                   ),
                 ],
@@ -348,13 +320,11 @@ class PostscreenState extends State<Postscreen> {
                             : ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Image.memory(file!,
-                              fit: BoxFit.cover,)), // cropped image ka preview
+                              fit: BoxFit.cover,)),
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: 40,
-                  ),
+                  SizedBox(height: 40),
                   Container(
                     padding: EdgeInsets.all(2),
                     decoration: BoxDecoration(
