@@ -89,7 +89,7 @@ class ProfileState extends State<Profile> {
 
 
 
-  // to signout
+
   void _showSignoutOptions() {
     showModalBottomSheet(
       context: context,

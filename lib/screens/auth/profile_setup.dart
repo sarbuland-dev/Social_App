@@ -155,7 +155,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  // ---------------- PAGE 0: Profile Photo ----------------
+
   Widget _buildPhotoPage() {
     return SafeArea(
       child: Padding(
@@ -322,7 +322,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  // ---------------- PAGE 1: Bio ----------------
+
   Widget _buildBioPage() {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,

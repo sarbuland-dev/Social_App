@@ -4,7 +4,7 @@ class Validators {
     if (email.trim().isEmpty) return 'Email is required';
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email.trim())) return 'Enter a valid email';
-    return null; // null means no error
+    return null;
   }
 
   static String? validatePassword(String password) {

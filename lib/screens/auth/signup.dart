@@ -169,7 +169,7 @@ class SignupScreenState extends State<SignupScreen> {
         return;
       }
 
-      // showLoadingDialog(context);
+
 
       UserCredential userCredential =
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -190,7 +190,7 @@ class SignupScreenState extends State<SignupScreen> {
 
 
 
-      // hideLoadingDialog(context);
+
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,

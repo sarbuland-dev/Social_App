@@ -74,7 +74,7 @@ class SeedService {
         SetOptions(merge: true),
       );
 
-      // Dummy post
+
       batch.set(_db.collection('posts').doc(postId), {
         'postId': postId,
         'uid': user['uid'],

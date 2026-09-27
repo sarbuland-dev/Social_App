@@ -37,7 +37,7 @@ class SignupNamePage extends StatelessWidget {
               ShaderMask(
                 shaderCallback: (bounds) {
                   return const LinearGradient(
-                    colors: [Colors.green, Colors.blue], //
+                    colors: [Colors.green, Colors.blue],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ).createShader(bounds);

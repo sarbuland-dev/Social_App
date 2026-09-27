@@ -208,7 +208,7 @@ class PostscreenState extends State<Postscreen> {
         controller: _pageController,
         physics: NeverScrollableScrollPhysics(),
         children: [
-          // ---------- PAGE 1: Image select karne wala part ----------
+
           Center(
             child: SingleChildScrollView(
               child: Column(
@@ -291,7 +291,7 @@ class PostscreenState extends State<Postscreen> {
             ),
           ),
 
-          // ---------- PAGE 2: Post create/caption wala part ----------
+
           Padding(
             padding: EdgeInsetsGeometry.all(10),
             child: SingleChildScrollView(

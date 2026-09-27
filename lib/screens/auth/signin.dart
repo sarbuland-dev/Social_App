@@ -95,14 +95,6 @@ class _SigninscreenState extends State<Signinscreen> {
       );
     }
   }
-
-
-
-
-
-
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
